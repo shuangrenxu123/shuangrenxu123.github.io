@@ -119,8 +119,8 @@
       <div class="post-content-main animate__animated  animate__fadeInUp">
         <!-- top型目录 -->
         
-        <h1 id="介绍"><a href="#介绍" class="headerlink" title="介绍"></a>介绍</h1><p>屏幕后处理是一种基本的操作，它主要是在所有的绘制都完成了以后来处理，从而达到想要的效果，比如雾气效果，</p>
-<h1 id="使用方法"><a href="#使用方法" class="headerlink" title="使用方法"></a>使用方法</h1><p>后处理的原理是我们的摄像机渲染完毕以后，还未输出之前来截获他。然后通过一个指定的Shader来处理我们要渲染出去的图片，从而达到某种效果，使用中我们需要写一个C#脚本挂载在我们的摄像机上，其中主要的代码为</p>
+        <h2 id="介绍"><a href="#介绍" class="headerlink" title="介绍"></a>介绍</h2><p>屏幕后处理是一种基本的操作，它主要是在所有的绘制都完成了以后来处理，从而达到想要的效果，比如雾气效果，</p>
+<h2 id="使用方法"><a href="#使用方法" class="headerlink" title="使用方法"></a>使用方法</h2><p>后处理的原理是我们的摄像机渲染完毕以后，还未输出之前来截获他。然后通过一个指定的Shader来处理我们要渲染出去的图片，从而达到某种效果，使用中我们需要写一个C#脚本挂载在我们的摄像机上，其中主要的代码为</p>
 <pre><code>void OnRenderImage(RenderTexture src,RenderTexture des)
 &#123;
     Graphics.Blit(src, des,material);
@@ -145,7 +145,7 @@ public class Posteffects : MonoBehaviour
     &#125;
 &#125;
 </code></pre>
-<h1 id="雾气效果"><a href="#雾气效果" class="headerlink" title="雾气效果"></a>雾气效果</h1><p>既然我们已经了解到了后处理的原理，那我们便来写一个最简单的例子————雾气效果。其中的瓜子啊的C#脚本在上文已经给出，我们这里就只会放出Shader内容，写完后只需要创建一个Material，然后把shader丢上去即可。</p>
+<h2 id="雾气效果"><a href="#雾气效果" class="headerlink" title="雾气效果"></a>雾气效果</h2><p>既然我们已经了解到了后处理的原理，那我们便来写一个最简单的例子————雾气效果。其中的挂载的C#脚本在上文已经给出，我们这里就只会放出Shader内容，写完后只需要创建一个Material，然后把shader丢上去即可。</p>
 <p>在最简单的雾气处理中，我们会需要用到深度图（DepthTexture）。摄像机的纹理，以及雾气颜色。<br>因此我们的变量如下。</p>
 <pre><code>Properties
 &#123;
@@ -181,8 +181,8 @@ public class Posteffects : MonoBehaviour
 &#125;
 </code></pre>
 <p>至此我们便简单的实现了一个简单的后处理雾效。</p>
-<h1 id="通过后处理来还原世界坐标"><a href="#通过后处理来还原世界坐标" class="headerlink" title="通过后处理来还原世界坐标"></a>通过后处理来还原世界坐标</h1><p>在某些需求下我们会需要还原像素点他的真实世界坐标，比如高度雾，他就需要判断每一个像素点的真实高度值，</p>
-<h2 id="原理"><a href="#原理" class="headerlink" title="原理"></a>原理</h2><p>深度缓冲中存放的值是我们距离近平面的值，当物体的值与近平面相同时，他的深度值便为0，与远平面相同时，深度值为1，</p>
+<h2 id="通过后处理来还原世界坐标"><a href="#通过后处理来还原世界坐标" class="headerlink" title="通过后处理来还原世界坐标"></a>通过后处理来还原世界坐标</h2><p>在某些需求下我们会需要还原像素点他的真实世界坐标，比如高度雾，他就需要判断每一个像素点的真实高度值，</p>
+<h3 id="原理"><a href="#原理" class="headerlink" title="原理"></a>原理</h3><p>深度缓冲中存放的值是我们距离近平面的值，当物体的值与近平面相同时，他的深度值便为0，与远平面相同时，深度值为1，</p>
 <p>
         <span class="lazyload-img-span">
         <img   
@@ -259,7 +259,7 @@ public class Posteffects : MonoBehaviour
     return finalColor;
 &#125;
 </code></pre>
-<h1 id="完整代码"><a href="#完整代码" class="headerlink" title="完整代码"></a>完整代码</h1><pre><code>Shader &quot;Unlit/FogWithDepthTexture&quot;
+<h2 id="完整代码"><a href="#完整代码" class="headerlink" title="完整代码"></a>完整代码</h2><pre><code>Shader &quot;Unlit/FogWithDepthTexture&quot;
 &#123;
 Properties
 &#123;
@@ -352,7 +352,7 @@ SubShader
       <div class="post-content-inner-space">
         
           <div class="space-toc-main animate__animated  animate__fadeInUp">
-            <ol class="space-toc"><li class="space-toc-item space-toc-level-2"><a class="space-toc-link" href="#%E5%8E%9F%E7%90%86"><span class="space-toc-text">原理</span></a></li></ol>
+            <ol class="space-toc"><li class="space-toc-item space-toc-level-2"><a class="space-toc-link" href="#%E4%BB%8B%E7%BB%8D"><span class="space-toc-text">介绍</span></a></li><li class="space-toc-item space-toc-level-2"><a class="space-toc-link" href="#%E4%BD%BF%E7%94%A8%E6%96%B9%E6%B3%95"><span class="space-toc-text">使用方法</span></a></li><li class="space-toc-item space-toc-level-2"><a class="space-toc-link" href="#%E9%9B%BE%E6%B0%94%E6%95%88%E6%9E%9C"><span class="space-toc-text">雾气效果</span></a></li><li class="space-toc-item space-toc-level-2"><a class="space-toc-link" href="#%E9%80%9A%E8%BF%87%E5%90%8E%E5%A4%84%E7%90%86%E6%9D%A5%E8%BF%98%E5%8E%9F%E4%B8%96%E7%95%8C%E5%9D%90%E6%A0%87"><span class="space-toc-text">通过后处理来还原世界坐标</span></a></li><li class="space-toc-item space-toc-level-2"><a class="space-toc-link" href="#%E5%AE%8C%E6%95%B4%E4%BB%A3%E7%A0%81"><span class="space-toc-text">完整代码</span></a></li></ol>
            </div>
         
       </div>
