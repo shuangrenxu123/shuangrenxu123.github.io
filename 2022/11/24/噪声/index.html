@@ -119,11 +119,131 @@
       <div class="post-content-main animate__animated  animate__fadeInUp">
         <!-- top型目录 -->
         
-        
+        <h2 id="噪声介绍"><a href="#噪声介绍" class="headerlink" title="噪声介绍"></a>噪声介绍</h2><p>在现实中我们经常会遇到一些神奇的纹路，你说他们没有规律把，他们又有规律，你说他们有规律把，他们又不按照规律长。为了模拟出来这种效果，一堆大佬便发明出了噪音（Noise）,ps：我还是不知道为什么叫做噪音而不是叫做其他的。由于噪声的强大，它被广泛用于程序生成，特效制作等各个方面，且使用方法多种多样<br>噪音从本质上看就是一些随机值，对于没有任何联系，完全随机的噪声图，我们称之为白噪声。而对于那些有规律的，有渐变的噪声图才是我们今天讨论的主角。</p>
+<h2 id="ValueNoise"><a href="#ValueNoise" class="headerlink" title="ValueNoise"></a>ValueNoise</h2><p>因为ValueNoise最简单，因此我们第一个讲。ValueNoise图并不是完全随机出来的一张图。而是通过我们对关键点赋值，其他部分插值所得到的结果得到一张图，那么就意味着我们需要输入这些关键点的值。ValueNoise证正是一种基于晶格来生成的噪声图，那么什么是晶格呢？我们可以想想一个棋盘，里面的每一个格子便是一个晶格(没有找到好点的图片，将就用用把)</p>
+<p>
+        <span class="lazyload-img-span">
+        <img   
+           data-src="https://pic1.zhimg.com/v2-a226038733c6763e39ebf291fb589c90_b.jpg" >
+        </sapn>
+      <br>
+        <span class="lazyload-img-span">
+        <img   
+           data-src="https://pic2.zhimg.com/80/v2-716ead083a288dad5797762953cfe5a5_720w.webp" >
+        </sapn>
+      </p>
+<p>上面的一个方格便是一个晶格，ValueNoise的定义为我们需要输入每个晶格上四个顶点值，然后对于晶格内我们就可以利用插值来计算。对于晶格点的值的输入可以用Random来给一个随机值（<em>最好别这么用。因为对于同一个点两个取值不一样会看起来比较奇怪</em>），在这里我们给出的其他方法则是利用一个<a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/560229938">hash库</a>。它可以保证我们只要输入的值相同那么输出肯定也相同。然后对于中间的点，我们可以用插值来计算，首先在P0和P1之间插值，P2和P3之间插值，再把他们两个的结果来根据Y值插值即可。代码如下</p>
+<pre><code>//保留整数，向下保留
+float2 pi = floor(p);
+//保留小数
+float2 pf = frac(p);
+//过度值
+float2 w = pf * pf * pf*(6 * pf * pf - 15 * pf +10);
+float v1 = lerp(hash21(pi+float2(0.0,0.0)),hash21(pi+float2(1.0,0.0)),w.x);
+float v2 = lerp(hash21(pi+float2(0.0,1.0)),hash21(pi+float2(1.0,1.0)),w.x);
+return lerp(v1,v2,w.y);
+</code></pre>
+<p>其中的W则是我们对插值的修饰，因为如果直接用坐标来作为值的话会显得十分的突兀，因此噪声的发明者提出了这个函数来修饰一下插值时的过度。完整代码如下</p>
+<pre><code>#pragma kernel CSMain
+RWTexture2D&lt;float4&gt; Result;
+float scale;
+int Type = 0;
+int state =0;
+int size;
+float2 hash21(float2 p)&#123;
+float h = dot(p,float2(127.1,311.7));
+return -1.0 + 2.0 * frac(sin(h) * 43758.5453123);
+&#125;
+float ValueNoise(float2 p)
+&#123;
+    //保留整数，向下保留
+    float2 pi = floor(p);
+    //保留小数
+    float2 pf = frac(p);
+    //过度值
+    float2 w = pf * pf * pf*(6 * pf * pf - 15 * pf +10);
+    float v1 = lerp(hash21(pi+float2(0.0,0.0)),hash21(pi+float2(1.0,0.0)),w.x);
+    float v2 = lerp(hash21(pi+float2(0.0,1.0)),hash21(pi+float2(1.0,1.0)),w.x);
+    return lerp(v1,v2,w.y);
+&#125;
+[numthreads(8,8,1)]
+void CSMain (uint3 id : SV_DispatchThreadID)
+&#123;
+    float r =0;
+    r = ValueNoise(id/5);
+    r = r*0.5+0.5f;
+    Result[id.xy] = float4(r,r,r,1);
+&#125;
+</code></pre>
+<p>代码中 **r &#x3D; ValueNoise(id&#x2F;5)**中除以了5是为了确保一个晶格的长度为5，因为在脚本中我们是以分辨率为长度，而不是UV那样（0，1）为长度。所以不会出现小数，所以我们需要自己手动来处理一个缩放。如果这里不除以5，那么整个贴图就会变成一个白噪音图。
+        <span class="lazyload-img-span">
+        <img   
+           data-src="https://pica.zhimg.com/v2-f8875a686f648476a19779595a5dd085_1440w.jpg?source=172ae18b" >
+        </sapn>
+      </p>
+<h2 id="PerlinNoise"><a href="#PerlinNoise" class="headerlink" title="PerlinNoise"></a>PerlinNoise</h2><p>由于ValueNoise的插值不太人性，因此衍生出来了他的升级版PerlinNoise，<br>他与ValueNoise不同的点在于他给晶格上面的每一个点都添加了一个随机方向的向量，而不是采用随机赋值
+        <span class="lazyload-img-span">
+        <img   
+           data-src="https://pic2.zhimg.com/80/v2-8991473bcf958c4b37b8abebc17c4f41_720w.webp" >
+        </sapn>
+      <br>对于晶格内的点，我们需要先生成四个顶点指向该点的向量(如上图)，然后利用生成出来的向量与该晶格点上的向量点乘，比如左下角的点为P0，$\vec{P}$为执行晶格内点的向量，$\vec{P0}$为该晶格点随机生成的向量，那么结果就是<br>$dot(p,p0)$,在得到了结果以后在跟ValueNoise一样，先X轴插值，再Y轴插值</p>
+<pre><code>float PerlinNoise(float2 p)&#123;
+    float2 pi = floor(p);
+    float2 pf = frac(p);
+    float2 w = pf * pf * pf*(6 * pf * pf - 15 * pf +10);
+    float v1 = lerp(
+        dot(hash22(pi + float2(0.0,0.0)),pf -float2(0.0,0.0)),
+        dot(hash22(pi + float2(1.0,0.0)),pf -float2(1.0,0.0)),w.x);
+
+    float v2 = lerp(
+        dot(hash22(pi + float2(0.0,1.0)),pf -float2(0.0,1.0)),
+        dot(hash22(pi + float2(1.0,1.0)),pf -float2(1.0,1.0)),w.x);
+    return lerp(v1,v2,w.y);
+&#125;
+</code></pre>
+<h2 id="WorleyNoise"><a href="#WorleyNoise" class="headerlink" title="WorleyNoise"></a>WorleyNoise</h2><p>又被称之为泰勒多边形，细胞噪声。可以用于体积云的制作等方面。而一个WorleyNoise噪声的生成也与我们前面两个的生成不太一样。这一次我们不再是基于晶格来生成，而是基于晶胞</p>
+<h2 id="分行噪声-FBM"><a href="#分行噪声-FBM" class="headerlink" title="分行噪声(FBM)"></a>分行噪声(FBM)</h2><p>我们学会了前面的知识点便可以自己去实现一些噪声图，但是这样生成的噪声图十分的无趣，我们可以利用函数组合来得到不同的结果。比如将ValueNoise与PerlinNoise相加，这里我们介绍一种让图变得细腻的方法。利用不同的公式，我们便可以得到不同的噪声图，而分形噪声的实现也很简单，我们只需要讲两张图根据他们的权重加起来即可（没错就是这么粗暴），首先需要知道的是如何评价一个噪声图的频率是否之高呢。很简单看他过渡是否多即可。所以白噪声是频率很好的噪音图，那么对于我们的代码应该怎么理解呢。先看以下代码</p>
+<pre><code>float ValueNoise(float2 p)
+&#123;
+
+    float2 pi = floor(p);
+    float2 pf = frac(p);
+    float2 w = pf * pf * pf*(6 * pf * pf - 15 * pf +10);
+    float v1 = lerp(hash21(pi+float2(0.0,0.0)),hash21(pi+float2(1.0,0.0)),w.x);
+    float v2 = lerp(hash21(pi+float2(0.0,1.0)),hash21(pi+float2(1.0,1.0)),w.x);
+    return lerp(v1,v2,w.y);
+&#125;
+
+float r =ValueNoise(id.xy / scale);
+</code></pre>
+<p>在上文中我们了解到了，scale即是我们一个晶格的长度，即意味着scale越小，我们的参数<strong>P</strong>越大，这也就意味着我们会生成更多的随机值，生成的贴图过渡也就更加不明显。<br>这时我们会称这张图的频率很高。那么意味着函数<strong>ValueNoise</strong>的参数越大，噪声的频率越大。在冯乐乐的博客中给出了一种细腻噪声的方法，</p>
+<pre><code>float ValueSum(float2 p)&#123;
+    float f = 0;
+    p = 4*p;
+    f += state &gt; 0? abs(ValueNoise(p)) : ValueNoise(p);
+    p = 2*p; 
+    f+= 0.5 * (state &gt; 0? abs(ValueNoise(p)) : ValueNoise(p));
+    p = 2*p;
+    f+= 0.25 * (state &gt; 0? abs(ValueNoise(p)) : ValueNoise(p));
+    p =2*p;
+    f+= 0.125 * (state &gt; 0? abs(ValueNoise(p)) : ValueNoise(p));
+    p = 2 * p;
+    f+= 0.0625 * (state &gt; 0 ? abs(ValueNoise(p)) : ValueNoise(p));
+    p = 2*p;
+    return f;
+&#125;
+</code></pre>
+<p>在代码中我们一步步降低了高频噪声的权重。以一个低频的噪声图为基准来将他们相加起来，就可以实现一个以低频噪声图为大概轮廓，高频噪声图来提供细节的噪声图。另外的例子是我们可以通过一张普通的噪声图加上以一个圆为大概轮廓（即圆心的值为1，边上为0，离圆心越远值越小）的噪声图，就可以得到一个随机生成的小岛，具体的可以去给出的参考中红帽子的链接中了解。</p>
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><p><a target="_blank" rel="noopener" href="https://blog.csdn.net/candycat1992/article/details/50346469">冯乐乐大佬的文章</a><br><a target="_blank" rel="noopener" href="https://blog.csdn.net/weixin_42825810/article/details/109311631">用ComputeShader来实现各种噪声</a><br><a target="_blank" rel="noopener" href="https://www.redblobgames.com/maps/terrain-from-noise/">Red Blob</a></p>
+
         <!-- 分类文章 -->
         
       </div>
       <div class="post-content-inner-space">
+        
+          <div class="space-toc-main animate__animated  animate__fadeInUp">
+            <ol class="space-toc"><li class="space-toc-item space-toc-level-2"><a class="space-toc-link" href="#%E5%99%AA%E5%A3%B0%E4%BB%8B%E7%BB%8D"><span class="space-toc-text">噪声介绍</span></a></li><li class="space-toc-item space-toc-level-2"><a class="space-toc-link" href="#ValueNoise"><span class="space-toc-text">ValueNoise</span></a></li><li class="space-toc-item space-toc-level-2"><a class="space-toc-link" href="#PerlinNoise"><span class="space-toc-text">PerlinNoise</span></a></li><li class="space-toc-item space-toc-level-2"><a class="space-toc-link" href="#WorleyNoise"><span class="space-toc-text">WorleyNoise</span></a></li><li class="space-toc-item space-toc-level-2"><a class="space-toc-link" href="#%E5%88%86%E8%A1%8C%E5%99%AA%E5%A3%B0-FBM"><span class="space-toc-text">分行噪声(FBM)</span></a></li><li class="space-toc-item space-toc-level-2"><a class="space-toc-link" href="#%E5%8F%82%E8%80%83"><span class="space-toc-text">参考</span></a></li></ol>
+           </div>
         
       </div>
    </div>

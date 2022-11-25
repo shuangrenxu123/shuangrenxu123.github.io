@@ -124,7 +124,7 @@
 <li>ComputeShader</li>
 <li>JobSystem<br>在本文中我们只会介绍前者，ComputerShader是一种特殊的Shader，他独立于渲染管线之外，因此我们可以利用他来计算一些简单大量的计算，如果把我们的CPU看成一个智力超高的博士，那么我们的GPU就可以看成是1000个小学生，将简单的计算丢给小学生计算效率肯定比喊一个人算来的要快。详细的介绍我们可以去<a target="_blank" rel="noopener" href="https://docs.unity3d.com/Manual/class-ComputeShader.html">Unity官方解释</a>获得</li>
 </ol>
-<h2 id="语法介绍"><a href="#语法介绍" class="headerlink" title="语法介绍"></a>语法介绍</h2><p>首先我们先来看看一个ComputeShader文件长什么样(下文中我们称之为CS文件)，在unity中右键可以在创建Shader那一栏中找到ComputeShader。创建好打开后张这个样子</p>
+<h2 id="语法介绍"><a href="#语法介绍" class="headerlink" title="语法介绍"></a>语法介绍</h2><p>首先我们先来看看一个ComputeShader文件长什么样(下文中我们称之为CS文件)，在unity中右键可以在创建Shader那一栏中找到ComputeShader。创建好打开后长这个样子</p>
 <pre><code>#pragma kernel CSMain
 
 RWTexture2D&lt;float4&gt; Result;
@@ -136,7 +136,7 @@ void CSMain (uint3 id : SV_DispatchThreadID)
 </code></pre>
 <p>第一行我们是声明了一个内核函数，也就是CS计算时的入口函数，一个CS文件最少需要一个内核函数，而每个内核函数则需要定义有多少个线程来处理。在第三行我们则声明了一个RWTexture2D的变量，这个变量其实是一个RenderTexure类型的变量，如果在cpu中我们想要填充一个贴图，则需要写个双重循环来一个一个填充像素点，但在GPU中我们不这样做，因为他给我们提供了很多的线程，我们可以让每一个线程都来填充一个颜色这样就达到了快速填充一个纹理的目的。</p>
 <p>更多的类型我们后文再表，</p>
-<p>第四行则是我们我们对线程数量的定义它定义了我们当前线程组有多少的线程。
+<p>第四行则是我们对线程数量的定义它定义了我们当前线程组有多少的线程。
         <span class="lazyload-img-span">
         <img   
            data-src="https://pic4.zhimg.com/80/v2-7d10681da478da42f1d8b3cf276b44eb_720w.webp" >
@@ -153,22 +153,22 @@ void CSMain (uint3 id : SV_DispatchThreadID)
 <tbody><tr>
 <td>SV_GroupID</td>
 <td>int3</td>
-<td>当前线程所在的线程组的ID</td>
+<td>当前线程<strong>所在</strong>的线程组的ID</td>
 </tr>
 <tr>
 <td>SV_GroupThreadID</td>
 <td>int3</td>
-<td>当前线程在所在的线程组内的ID</td>
+<td>当前线程在<strong>所在</strong>的线程组内的ID</td>
 </tr>
 <tr>
 <td>SV_DispatchThreadID</td>
 <td>int3</td>
-<td>当前线程在所有的线程组内的ID，假设该线程的SV_GroupID&#x3D;(a, b, c)，SV_GroupThreadID&#x3D;(i, j, k) 那么SV_DispatchThreadID&#x3D;(a* tX+i, b * tY+j, c*tZ+k)</td>
+<td>当前线程在<strong>所有</strong>的线程组内的ID，假设该线程的SV_GroupID&#x3D;(a, b, c)，SV_GroupThreadID&#x3D;(i, j, k) 那么SV_DispatchThreadID&#x3D;(a* tX+i, b * tY+j, c*tZ+k)</td>
 </tr>
 <tr>
 <td>SV_GroupIndex</td>
 <td>int</td>
-<td>当前线程所在线程组的下标，假设该线程的SV_GroupThreadID&#x3D;(i, j, k) 那么SV_GroupIndex&#x3D;k<em>tX</em>tY+j*tX+i</td>
+<td>当前线程<strong>所在</strong>线程组的下标，假设该线程的SV_GroupThreadID&#x3D;(i, j, k) 那么SV_GroupIndex&#x3D;k* tX* tY+j*tX+i</td>
 </tr>
 </tbody></table>
 <p>其中关于坐标转化为下标的计算中，他都是<strong>先计算X在计算Y最后计算Z</strong>，配合着图就很容易理解。<br>CS的编写语言是由HLSL改变而来，而HLSL又是由C变过来的，因此写起CS文件的语法和写C语言没有什么太大的差别。<br>CS文件我们编写完毕后，需要在C#脚本来调用它。代码如下</p>
