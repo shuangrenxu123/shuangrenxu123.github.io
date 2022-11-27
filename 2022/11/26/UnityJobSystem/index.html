@@ -1,0 +1,313 @@
+
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>  UnityJobSystem |    DickCat.</title>
+  <meta name="description" content="A minimalist theme for hexo.">
+  <!-- 标签页图标 -->
+  
+
+  <!-- 图标库 -->
+  <link href="https://cdn.jsdelivr.net/npm/remixicon@2.2.0/fonts/remixicon.css" rel="stylesheet">
+  <!-- 动画库 -->
+  
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/fushaolei/cdn-white@1.0/css/animate.css"/>
+  
+  <!-- css文件 -->
+  
+<link rel="stylesheet" href="/css/white.css">
+
+  <!-- 代码高亮 -->
+  
+    
+      
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@10.1.1/styles/github.css">
+
+    
+  
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+
+<body>
+
+<div class="menu-outer">
+    <div class="menu-inner">
+      <div class="menu-site-name  animate__animated  animate__fadeInUp">
+        <a href="/">
+          DickCat.
+        </a>
+        
+      </div>
+      <div class="menu-group">
+        <ul class="menu-ul">
+        
+          <a href="/" class="nav-link">
+            <li class="menu-li  animate__animated  animate__fadeInUp">
+              没啥用的主页
+            </li>
+          </a>
+        
+          <a href="/archives" class="nav-link">
+            <li class="menu-li  animate__animated  animate__fadeInUp">
+              学习杂记
+            </li>
+          </a>
+        
+        
+        
+          <li class="menu-li animate__animated  animate__fadeInUp" id="mobile-menu">
+            <i class="ri-menu-line"></i>
+          </li>
+        
+        </ul>
+
+      </div>
+
+    </div>
+</div>
+<div id="mobile-main" class="animate__animated  animate__fadeIn">
+  <div class="mobile-menu-inner">
+    <div class="mobile-menu-site-name animate__animated  animate__fadeInUp">
+      <a href="/">
+        DickCat.
+      </a>
+    </div>
+    <div class="mobile-menu-group" id="mobile-close">
+      <i class="ri-close-line"></i>
+    </div>
+
+  </div>
+
+  <div class="mobile-menu-div">
+  
+    <a href="/" class="mobile-nav-link">
+      <div class="mobile-menu-child animate__animated  animate__fadeInUp">
+        <span>没啥用的主页</span>
+      </div>
+    </a>
+  
+    <a href="/archives" class="mobile-nav-link">
+      <div class="mobile-menu-child animate__animated  animate__fadeInUp">
+        <span>学习杂记</span>
+      </div>
+    </a>
+  
+  
+  </div>
+
+
+</div>
+
+<div class="body-outer">
+  <div class="body-inner">
+    
+<article class="post-inner">
+  <div class="post-content-outer">
+    <div class="post-intro">
+      <div class="post-title animate__animated  animate__fadeInUp">UnityJobSystem</div>
+      <div class="meta-intro animate__animated  animate__fadeInUp">Nov 26 2022</div>
+      
+    </div>
+    <div class="post-content-inner">
+      <div class="post-content-inner-space">
+
+      </div>
+      <div class="post-content-main animate__animated  animate__fadeInUp">
+        <!-- top型目录 -->
+        
+        <h2 id="介绍"><a href="#介绍" class="headerlink" title="介绍"></a>介绍</h2><p>在前面的文章中我们介绍了利用GPU来强化计算，Unity还提供了另外一种办法来帮助我们快速的编写多线程代码。他便是今天的主角JobSystem。Unity的Jobsystem包现在已经被包含在了Dots核心包中。在以后的版本就不需要单独安装。</p>
+<p>Unity在引擎层面实现了一个Cpp版本的JobSystem，和一个C#层的JobSystem，Cpp层的JobSystem解决了线程上下文切换的问题，而C#层则是提供给我们的接口层。</p>
+<p>JobSystem管理了一组工作线程，他们可以是主线程或者是其他的线程，一般来说一个核上一个工作线程（因此避免了上下文切换），在底层中他会根据任务来自动的分配给工作线程，我们无法来控制我们的任务分配给哪个工作线程，只能将自己的任务提供给Job队列，然后由底层自动分配给工作线程。具体的了解可以去看《DOTS之路》的前导课。</p>
+<h2 id="Unity中的使用"><a href="#Unity中的使用" class="headerlink" title="Unity中的使用"></a>Unity中的使用</h2><p>再unity中想要使用JobSystem需要声明一个继承自 <strong>Job Types</strong> 的结构体。它里面会实现一个叫 <strong>Execute</strong> 的方法，这个方法有的时候会有参数，有的时候则会没有。比如当我们继承自 <strong>IJob</strong> 的时候他就没有参数，继承自 <strong>IJobFor</strong> 的时候参数为 <strong>(int Index)<strong>，而继承自</strong>IJobParallelForTransform</strong> 的时候则会有两个参数:**(int Index,TransformAccess transform)**。具体的参数含义我们后面再讲。一个完整的Job代码如下</p>
+<pre><code>struct MyJob : IJob
+&#123;
+    public void Execute()
+    &#123;
+        //do something;
+    &#125;
+&#125;
+</code></pre>
+<p>在unity中的使用代码如下</p>
+<pre><code>public Class MyScript : MonoBehavior
+&#123;
+    void Start()
+    &#123;
+        MyJob m = new MyJob();
+        m.Run(); 
+    &#125;
+&#125;
+</code></pre>
+<p>其中一个Job的调用大概有三种，</p>
+<table>
+<thead>
+<tr>
+<th>方法名</th>
+<th>介绍</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Run</td>
+<td>主线程立即顺序执行</td>
+</tr>
+<tr>
+<td>Schedule</td>
+<td>单个工作线程或者主线程，每个Job顺序执行</td>
+</tr>
+<tr>
+<td>ScheduleParallel</td>
+<td>多个工作线程上同时执行，性能最好，但要注意数据访问可能会发生冲突</td>
+</tr>
+</tbody></table>
+<p><strong>其中名字带有Parallel的Job类型，仅提供Schedule，不提供Run和ScheduleParallel的调度方式。</strong>(这句话在0.5版本的Jobs不适用，不确定1.0的版本会不会是这样)</p>
+<p>不管是哪种调度在调用后都会返回一个<strong>JobHandle</strong>类型的变量，它会阻塞我们当前的线程。用于等待我们的Job执行完毕，比如我第一个Job需要处理某些数据，而第二个Job则需要用到这些数据，那我们就应该让第二个Job来等待第一个执行完毕，而阻塞方法为 <strong>Complete</strong></p>
+<pre><code>JobHandle handle = myJob.Schedule();
+handle.Complete();
+</code></pre>
+<p>当调用Complete的时候他就会阻塞当前线程，如果我们想让其他的Job来等待这个Job完成的话可以这样写</p>
+<pre><code>MyJob job2 = new();
+JobHandle handle = myJob.Schedule();
+job2.Schedule(handle);
+//当我们希望JobC等待JobA和JobB都完成以后才执行可以这么写
+JobHandle handle = JobHandle.CombineDependencies(handleA,handleB);
+Jobc.Schedule(handle);
+</code></pre>
+<h2 id="不同JobType的区别"><a href="#不同JobType的区别" class="headerlink" title="不同JobType的区别"></a>不同JobType的区别</h2><p>JobType拥有很多的类型，但我们常用的大概就那么几个，主要为IJob，IJobFor，IJobParallelForTransform。</p>
+<p>IJob：主要用于单个任务，不需要大量并行的时候，调用方法跟上一节介绍的使用没有区别。</p>
+<p>IJobFor：由于IJob是一个工作线程上工作，性能提升有限，所以Unity为我们提供了并行的版本，他的Execute函数和调用会有一点的差别。长下面这样</p>
+<pre><code>struct MyJob : IJob
+&#123;
+    public void Execute(int index)
+    &#123;
+        //do something;
+    &#125;
+&#125;
+</code></pre>
+<p>调用代码</p>
+<pre><code>void Start()
+&#123;
+    MyJob m = new MyJob();
+    m.Run(num); 
+    m.Schedule(num,default);
+    m.ScheduleParallel(num,64,default);
+&#125;
+</code></pre>
+<p>IJob类型我们在调用的时候只会调用一次，而我们的IJobFor则是调用多次，上面代码的num参数便是调用次数，那么IJobFor类型的Execute方法的参数<strong>index</strong>也就很好理解了，他就是我们当前执行的是第几遍，方便我们对流程进行控制，而但我们传入的是数组长度的时候，我们也就可以将index看成我们的数组下标值。<del>比如我们想填充某个数组，就可以在调用的时候输入数组的长度，而index便是我们想要输出的数组的下标</del>。</p>
+<p>第二个default是关键字，原本的参数是一个JobHandle类型的变量，填default也就是没有等待的意思，</p>
+<p>比较特殊的便是ScheduleParallel方法的第二个参数，他的含义是一个工作线程一次工作的批次长度，也就是我这一次任务会执行64个，假设我们有8个核心，也就是8个线程，而我们的总长度，也就是Num数量为128时，那么也就只会有两个工作线程来工作。当某个工作线程先完成了任务，他还会获得别的Job的任务，以保证大家都完成这一批次的任务。
+        <span class="lazyload-img-span">
+        <img   
+           data-src="https://pic1.zhimg.com/80/v2-e2d1c0305823a2046fc5cf004cbbd88c_720w.webp" >
+        </sapn>
+      <br>但也不能说我们的批次越少越好，官方建议我们多次更改这个数值来观察，以达到最佳性能。</p>
+<p>IJobParallelForTransform：专门用于操作Tranform的操作。<br>    struct MyJob : IJobParallelForTransform<br>    {<br>        public void Execute(int index, TransformAccess transform)<br>        {<br>            &#x2F;&#x2F;do something<br>        }<br>    }<br>他的Execute方法又多了一个参数，它用于控制传入的Transform值。他的使用也有点不同，<a target="_blank" rel="noopener" href="https://github.com/lwwhb/RoadToDotsTutorials/blob/main/Assets/JobsTutorials/Lesson0/Scripts/DOD/WaveCubesWithJobs.cs">代码</a>如下</p>
+<pre><code>void Start()
+&#123;
+   TransformAccessArray transformAccessArray = new TransformAccessArray(4 * xHalfCount * zHalfCount);
+    for (var z = -zHalfCount; z &lt;= zHalfCount; z++)
+    &#123;
+        for (var x = -xHalfCount; x &lt;= xHalfCount; x++)
+        &#123;
+            var cube = Instantiate(cubeAchetype);
+            cube.transform.position = new Vector3(x * 1.1f, 0, z * 1.1f);
+            transformAccessArray.Add(cube.transform);
+        &#125;
+    &#125;
+
+    var handler = job.Schedule(transformAccessArray);
+&#125;
+</code></pre>
+<p>代码写的十分的易懂，也就不在多讲解了，Execute就是数组的下标，transform就是我们的物体transform值。</p>
+<p>至于其他的JobType，等我以后用到了再来继续写</p>
+<h2 id="数据的传递"><a href="#数据的传递" class="headerlink" title="数据的传递"></a>数据的传递</h2><p>JobSystem为了避免数据竞争，他选择了执行的时候是复制而非引用数据，而因此我们要使用的数据也就Blittable types类型的数据。</p>
+<p>使用复制数据的缺点在于我们所得到的结果也是独立的，而为了解决这个问题，JobSystem选择将结果储存在一端公共内存中。也便是<strong>NativeContainer</strong>。<br>NativeContainer以相对安全的托管类型的方式指向一个非托管的内存地址，使Job 可以直接访问主线程数据而非复制。</p>
+<p>Unity 自带 NativeContainer类型为 NativeArray，ECS 包又扩展了NativeList、NativeHashMap、NativeMultiHashMap和NativeQueue。从他们的名字中我们可以大概了解到他们应该如何使用，因此这里不再细说。声明一个NativeContainer如下：</p>
+<pre><code>//C#类中,这里float3是Mathematics下的，用Vector3也是可以的，只不过效率会变低。
+NativeArray&lt;float3&gt; Nums = new NativeArray(int Length,Allocator type);
+//在结构体中声明一个相同的即可
+NativeArray&lt;float3&gt; Nums;
+</code></pre>
+<p>在声明完毕后赋值进去就好了。在创建的时候我们会看到参数中有个Allocator类型的变量，它有以下几种类型。需要我们根据Job执行的时长来决定使用哪种。</p>
+<p>Allocator.Temp<br>最快的分配方法，适用于一帧或几帧的生命时长，不能将该类型分配的数据传给 Job，在方法 Return 前执行Dispose</p>
+<p>Allocator.TempJob<br>分配速度比 Temp 慢比 Persistent 快，4帧的生命时长且线程安全。若四帧内没有调用Dispose，控制台会打印原生代码生成的警告。大部分小任务都使用该类型分配NativeContainer</p>
+<p>Allocator.Persistent<br>是对malloc的包装，能够维持尽可能地生命时长，性能不足的情况下不应使用</p>
+<p>由于NativeContainer是非托管数据，因此需要我们自己<strong>手动Dispose</strong>。不要忘记。</p>
+<h2 id="优化"><a href="#优化" class="headerlink" title="优化"></a>优化</h2><ol>
+<li>在Job中我们不要使用静态变量，比如直接在Execute函数中访问Time.delat变量</li>
+<li>对于不会读或者不会写入的变量我们可以对其使用特性[ReadOnly]和[WriteOnly]来标记。</li>
+<li>对于我们所写的Job都可以在前面加上[BurstCompile]特性来利用Burst来编译，可以大幅度优化代码。</li>
+<li>我们可以引入Unity.Mathematics包来代替我们原本的类型，比如利用float3 代替 Vector3，Brust也会优化这些数学运算</li>
+</ol>
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><p><a target="_blank" rel="noopener" href="https://www.bilibili.com/video/BV1AD4y147Yg/?spm_id_from=333.788&vd_source=4cb2ec33454a41bb09e521e44c931372">B站大衍神君《DOTS之路》</a></p>
+<p><a target="_blank" rel="noopener" href="https://www.bilibili.com/video/BV1EV4y1g7ix/?spm_id_from=333.788">B站游戏石匠Super</a></p>
+<p><a target="_blank" rel="noopener" href="https://www.cnblogs.com/Logarius/p/15506061.html">Jobs简单实例</a></p>
+
+        <!-- 分类文章 -->
+        
+      </div>
+      <div class="post-content-inner-space">
+        
+          <div class="space-toc-main animate__animated  animate__fadeInUp">
+            <ol class="space-toc"><li class="space-toc-item space-toc-level-2"><a class="space-toc-link" href="#%E4%BB%8B%E7%BB%8D"><span class="space-toc-text">介绍</span></a></li><li class="space-toc-item space-toc-level-2"><a class="space-toc-link" href="#Unity%E4%B8%AD%E7%9A%84%E4%BD%BF%E7%94%A8"><span class="space-toc-text">Unity中的使用</span></a></li><li class="space-toc-item space-toc-level-2"><a class="space-toc-link" href="#%E4%B8%8D%E5%90%8CJobType%E7%9A%84%E5%8C%BA%E5%88%AB"><span class="space-toc-text">不同JobType的区别</span></a></li><li class="space-toc-item space-toc-level-2"><a class="space-toc-link" href="#%E6%95%B0%E6%8D%AE%E7%9A%84%E4%BC%A0%E9%80%92"><span class="space-toc-text">数据的传递</span></a></li><li class="space-toc-item space-toc-level-2"><a class="space-toc-link" href="#%E4%BC%98%E5%8C%96"><span class="space-toc-text">优化</span></a></li><li class="space-toc-item space-toc-level-2"><a class="space-toc-link" href="#%E5%8F%82%E8%80%83"><span class="space-toc-text">参考</span></a></li></ol>
+           </div>
+        
+      </div>
+   </div>
+    <!-- 评论 -->
+    
+  </div>
+</article>
+  </div>
+</div>
+
+
+
+<!-- 如果是home模式的话，不在首页就显示footer，如果不是home模式的话 所有都显示footer -->
+
+  <div class="footer-outer animate__animated  animate__fadeInUp">
+    <div class="footer-inner">
+    <div class="footer-text">
+    <p>Welcome 离谱小镇</p>
+
+    </div>
+    <div class="footer-contact">
+    <ul class="footer-ul">
+        
+        <li class="footer-li">
+            <a href="https://github.com/shuangrenxu123?tab=repositories" target="_blank">
+                <i class="ri-github-line"></i>
+            </a>
+        </li>
+        
+        <li class="footer-li">
+            <a href="mailto:1919802366@qq.com" target="_blank">
+                <i class="ri-mail-line"></i>
+            </a>
+        </li>
+        
+    </ul>
+    </div>
+    </div>
+</div>
+
+
+
+
+
+
+<script src="/js/white.js"></script>
+
+
+
+    
+      
+<script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@9.18.1/build/highlight.min.js"></script>
+
+      <script>hljs.initHighlightingOnLoad();</script>
+    
+
+</body>
+</html>
