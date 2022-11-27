@@ -119,7 +119,7 @@
       <div class="post-content-main animate__animated  animate__fadeInUp">
         <!-- top型目录 -->
         
-        <h2 id="介绍"><a href="#介绍" class="headerlink" title="介绍"></a>介绍</h2><p>在前面的文章中我们介绍了利用GPU来强化计算，Unity还提供了另外一种办法来帮助我们快速的编写多线程代码。他便是今天的主角JobSystem。Unity的Jobsystem包现在已经被包含在了Dots核心包中。在以后的版本就不需要单独安装。</p>
+        <h2 id="介绍"><a href="#介绍" class="headerlink" title="介绍"></a>介绍</h2><p>在前面的文章中我们介绍了利用GPU来强化计算，Unity还提供了另外一种办法来帮助我们快速的编写多线程代码。他便是今天的主角JobSystem。Unity的Jobsystem包现在已经被包含在了Dots核心包中。在以后的版本就不需要单独安装。虽然JobSystem是和ECS一起提出来的，但我们仍然可以单独使用来对我们的游戏增加一些优化</p>
 <p>Unity在引擎层面实现了一个Cpp版本的JobSystem，和一个C#层的JobSystem，Cpp层的JobSystem解决了线程上下文切换的问题，而C#层则是提供给我们的接口层。</p>
 <p>JobSystem管理了一组工作线程，他们可以是主线程或者是其他的线程，一般来说一个核上一个工作线程（因此避免了上下文切换），在底层中他会根据任务来自动的分配给工作线程，我们无法来控制我们的任务分配给哪个工作线程，只能将自己的任务提供给Job队列，然后由底层自动分配给工作线程。具体的了解可以去看《DOTS之路》的前导课。</p>
 <h2 id="Unity中的使用"><a href="#Unity中的使用" class="headerlink" title="Unity中的使用"></a>Unity中的使用</h2><p>再unity中想要使用JobSystem需要声明一个继承自 <strong>Job Types</strong> 的结构体。它里面会实现一个叫 <strong>Execute</strong> 的方法，这个方法有的时候会有参数，有的时候则会没有。比如当我们继承自 <strong>IJob</strong> 的时候他就没有参数，继承自 <strong>IJobFor</strong> 的时候参数为 <strong>(int Index)<strong>，而继承自</strong>IJobParallelForTransform</strong> 的时候则会有两个参数:**(int Index,TransformAccess transform)**。具体的参数含义我们后面再讲。一个完整的Job代码如下</p>
@@ -235,6 +235,7 @@ NativeArray&lt;float3&gt; Nums;
 <p>Allocator.TempJob<br>分配速度比 Temp 慢比 Persistent 快，4帧的生命时长且线程安全。若四帧内没有调用Dispose，控制台会打印原生代码生成的警告。大部分小任务都使用该类型分配NativeContainer</p>
 <p>Allocator.Persistent<br>是对malloc的包装，能够维持尽可能地生命时长，性能不足的情况下不应使用</p>
 <p>由于NativeContainer是非托管数据，因此需要我们自己<strong>手动Dispose</strong>。不要忘记。</p>
+<h2 id="在ECS中的使用"><a href="#在ECS中的使用" class="headerlink" title="在ECS中的使用"></a>在ECS中的使用</h2><p>~~待补充</p>
 <h2 id="优化"><a href="#优化" class="headerlink" title="优化"></a>优化</h2><ol>
 <li>在Job中我们不要使用静态变量，比如直接在Execute函数中访问Time.delat变量</li>
 <li>对于不会读或者不会写入的变量我们可以对其使用特性[ReadOnly]和[WriteOnly]来标记。</li>
@@ -251,7 +252,7 @@ NativeArray&lt;float3&gt; Nums;
       <div class="post-content-inner-space">
         
           <div class="space-toc-main animate__animated  animate__fadeInUp">
-            <ol class="space-toc"><li class="space-toc-item space-toc-level-2"><a class="space-toc-link" href="#%E4%BB%8B%E7%BB%8D"><span class="space-toc-text">介绍</span></a></li><li class="space-toc-item space-toc-level-2"><a class="space-toc-link" href="#Unity%E4%B8%AD%E7%9A%84%E4%BD%BF%E7%94%A8"><span class="space-toc-text">Unity中的使用</span></a></li><li class="space-toc-item space-toc-level-2"><a class="space-toc-link" href="#%E4%B8%8D%E5%90%8CJobType%E7%9A%84%E5%8C%BA%E5%88%AB"><span class="space-toc-text">不同JobType的区别</span></a></li><li class="space-toc-item space-toc-level-2"><a class="space-toc-link" href="#%E6%95%B0%E6%8D%AE%E7%9A%84%E4%BC%A0%E9%80%92"><span class="space-toc-text">数据的传递</span></a></li><li class="space-toc-item space-toc-level-2"><a class="space-toc-link" href="#%E4%BC%98%E5%8C%96"><span class="space-toc-text">优化</span></a></li><li class="space-toc-item space-toc-level-2"><a class="space-toc-link" href="#%E5%8F%82%E8%80%83"><span class="space-toc-text">参考</span></a></li></ol>
+            <ol class="space-toc"><li class="space-toc-item space-toc-level-2"><a class="space-toc-link" href="#%E4%BB%8B%E7%BB%8D"><span class="space-toc-text">介绍</span></a></li><li class="space-toc-item space-toc-level-2"><a class="space-toc-link" href="#Unity%E4%B8%AD%E7%9A%84%E4%BD%BF%E7%94%A8"><span class="space-toc-text">Unity中的使用</span></a></li><li class="space-toc-item space-toc-level-2"><a class="space-toc-link" href="#%E4%B8%8D%E5%90%8CJobType%E7%9A%84%E5%8C%BA%E5%88%AB"><span class="space-toc-text">不同JobType的区别</span></a></li><li class="space-toc-item space-toc-level-2"><a class="space-toc-link" href="#%E6%95%B0%E6%8D%AE%E7%9A%84%E4%BC%A0%E9%80%92"><span class="space-toc-text">数据的传递</span></a></li><li class="space-toc-item space-toc-level-2"><a class="space-toc-link" href="#%E5%9C%A8ECS%E4%B8%AD%E7%9A%84%E4%BD%BF%E7%94%A8"><span class="space-toc-text">在ECS中的使用</span></a></li><li class="space-toc-item space-toc-level-2"><a class="space-toc-link" href="#%E4%BC%98%E5%8C%96"><span class="space-toc-text">优化</span></a></li><li class="space-toc-item space-toc-level-2"><a class="space-toc-link" href="#%E5%8F%82%E8%80%83"><span class="space-toc-text">参考</span></a></li></ol>
            </div>
         
       </div>
