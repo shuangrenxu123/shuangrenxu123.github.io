@@ -123,6 +123,7 @@
 <h2 id="做法"><a href="#做法" class="headerlink" title="做法"></a>做法</h2><p>我们客户端接收服务端发送过来的数据，将其同步进数据即可。十分的易懂</p>
 <h2 id="预测"><a href="#预测" class="headerlink" title="预测"></a>预测</h2><p>与帧同步的预测方法差不多，我们根据前一刻接收到的数据来预测下一步的运动，</p>
 <h2 id="回滚"><a href="#回滚" class="headerlink" title="回滚"></a>回滚</h2><p>客户端的信息都要发送给了服务端信息以后，等服务器判断了合法性以后再发送回来真正的执行，这就会导致手感差异很大，所以我们需要在按下操作后立马就反馈给玩家以增强手感，这也就是客户端的预测，比如在状态同步中。玩家偶尔会因为延迟过大而导致被拉回。这就是客户端预测的结果与服务端返回的结果不同，客户端强行修正所导致的结果，也叫做回滚。</p>
+<h2 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h2><p><a target="_blank" rel="noopener" href="https://www.jianshu.com/p/c1fb23afbabe">如何实现确定性的网络同步</a><br><a target="_blank" rel="noopener" href="https://www.jianshu.com/p/6c1b37735c85">服务器将状态同步给客户端</a><br><a target="_blank" rel="noopener" href="https://www.jianshu.com/p/5dbdf81c4e69">客户端本地预测表现</a><br><a target="_blank" rel="noopener" href="http://www.skywind.me/blog/archives/112">网络游戏同步法则</a><br><a target="_blank" rel="noopener" href="http://www.skywind.me/blog/archives/1145">影子追随算法</a></p>
 
         <!-- 分类文章 -->
         
@@ -130,7 +131,7 @@
       <div class="post-content-inner-space">
         
           <div class="space-toc-main animate__animated  animate__fadeInUp">
-            <ol class="space-toc"><li class="space-toc-item space-toc-level-2"><a class="space-toc-link" href="#%E6%80%9D%E6%83%B3"><span class="space-toc-text">思想</span></a></li><li class="space-toc-item space-toc-level-2"><a class="space-toc-link" href="#%E5%81%9A%E6%B3%95"><span class="space-toc-text">做法</span></a></li><li class="space-toc-item space-toc-level-2"><a class="space-toc-link" href="#%E9%A2%84%E6%B5%8B"><span class="space-toc-text">预测</span></a></li><li class="space-toc-item space-toc-level-2"><a class="space-toc-link" href="#%E5%9B%9E%E6%BB%9A"><span class="space-toc-text">回滚</span></a></li></ol>
+            <ol class="space-toc"><li class="space-toc-item space-toc-level-2"><a class="space-toc-link" href="#%E6%80%9D%E6%83%B3"><span class="space-toc-text">思想</span></a></li><li class="space-toc-item space-toc-level-2"><a class="space-toc-link" href="#%E5%81%9A%E6%B3%95"><span class="space-toc-text">做法</span></a></li><li class="space-toc-item space-toc-level-2"><a class="space-toc-link" href="#%E9%A2%84%E6%B5%8B"><span class="space-toc-text">预测</span></a></li><li class="space-toc-item space-toc-level-2"><a class="space-toc-link" href="#%E5%9B%9E%E6%BB%9A"><span class="space-toc-text">回滚</span></a></li><li class="space-toc-item space-toc-level-2"><a class="space-toc-link" href="#%E5%8F%82%E8%80%83%E8%B5%84%E6%96%99"><span class="space-toc-text">参考资料</span></a></li></ol>
            </div>
         
       </div>
