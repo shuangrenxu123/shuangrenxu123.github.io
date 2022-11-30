@@ -151,8 +151,8 @@
            data-src="http://www.ruanyifeng.com/blogimg/asset/201211/bg2012111416.png" >
         </sapn>
       </p>
-<p>dawdwa</p>
-<p>加起来便是中心点的新值.从而达到了模糊图片的目的.<br><del>以上全是个人理解,如有错误立马更改</del>,而由于卷积核的性质,会导致图片小一圈,我们的解决方法是当图片在边缘时,会将对立边缘的值拿来用.相当于是一个圆柱一样).假设高斯核为NxN,图片长宽为W与H,那么最终纹理采样的次数为 <strong>N * N * W * H</strong>次,会很容易的变大.不过幸好我们可以讲一个二维的高斯核拆成两个一维的.这样就变成了<strong>2 * W * H * N</strong>次了.具体的代码我们可以去<a target="_blank" rel="noopener" href="https://github.com/candycat1992/Unity_Shaders_Book/blob/master/Assets/Shaders/Chapter12/Chapter12-GaussianBlur.shader">这里</a>查看.<br>然后我们可以通过多次迭代来达到更模糊的感觉.<br>C#脚本如下</p>
+<p>加起来便是中心点的新值.从而达到了模糊图片的目的.<br><del>以上全是个人理解,如有错误立马更改</del>,而由于卷积核的性质,会导致图片小一圈,我们的解决方法是当图片在边缘时,会将对立边缘的值拿来用.相当于是一个圆柱一样).假设高斯核为NxN,图片长宽为W与H,那么最终纹理采样的次数为 <strong>N * N * W * H</strong>次,会很容易的变大.不过幸好我们可以讲一个二维的高斯核拆成两个一维的.这样就变成了<strong>2 * W * H * N</strong>次了.具体的代码我们可以去<a target="_blank" rel="noopener" href="https://github.com/candycat1992/Unity_Shaders_Book/blob/master/Assets/Shaders/Chapter12/Chapter12-GaussianBlur.shader">这里</a>查看.<br>然后我们可以通过多次迭代来达到更模糊的感觉.</p>
+<p>C#脚本如下</p>
 <pre><code>public class GaussianBlur : MonoBehaviour
 &#123;
     [Range(0, 4)]
