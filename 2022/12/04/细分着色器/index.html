@@ -1,0 +1,290 @@
+
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>  UnityShader 细分着色器与几何着色器 |    DickCat.</title>
+  <meta name="description" content="A minimalist theme for hexo.">
+  <!-- 标签页图标 -->
+  
+
+  <!-- 图标库 -->
+  <link href="https://cdn.jsdelivr.net/npm/remixicon@2.2.0/fonts/remixicon.css" rel="stylesheet">
+  <!-- 动画库 -->
+  
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/fushaolei/cdn-white@1.0/css/animate.css"/>
+  
+  <!-- css文件 -->
+  
+<link rel="stylesheet" href="/css/white.css">
+
+  <!-- 代码高亮 -->
+  
+    
+      
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@10.1.1/styles/github.css">
+
+    
+  
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+
+<body>
+
+<div class="menu-outer">
+    <div class="menu-inner">
+      <div class="menu-site-name  animate__animated  animate__fadeInUp">
+        <a href="/">
+          DickCat.
+        </a>
+        
+      </div>
+      <div class="menu-group">
+        <ul class="menu-ul">
+        
+          <a href="/" class="nav-link">
+            <li class="menu-li  animate__animated  animate__fadeInUp">
+              没啥用的主页
+            </li>
+          </a>
+        
+          <a href="/archives" class="nav-link">
+            <li class="menu-li  animate__animated  animate__fadeInUp">
+              学习杂记
+            </li>
+          </a>
+        
+        
+        
+          <li class="menu-li animate__animated  animate__fadeInUp" id="mobile-menu">
+            <i class="ri-menu-line"></i>
+          </li>
+        
+        </ul>
+
+      </div>
+
+    </div>
+</div>
+<div id="mobile-main" class="animate__animated  animate__fadeIn">
+  <div class="mobile-menu-inner">
+    <div class="mobile-menu-site-name animate__animated  animate__fadeInUp">
+      <a href="/">
+        DickCat.
+      </a>
+    </div>
+    <div class="mobile-menu-group" id="mobile-close">
+      <i class="ri-close-line"></i>
+    </div>
+
+  </div>
+
+  <div class="mobile-menu-div">
+  
+    <a href="/" class="mobile-nav-link">
+      <div class="mobile-menu-child animate__animated  animate__fadeInUp">
+        <span>没啥用的主页</span>
+      </div>
+    </a>
+  
+    <a href="/archives" class="mobile-nav-link">
+      <div class="mobile-menu-child animate__animated  animate__fadeInUp">
+        <span>学习杂记</span>
+      </div>
+    </a>
+  
+  
+  </div>
+
+
+</div>
+
+<div class="body-outer">
+  <div class="body-inner">
+    
+<article class="post-inner">
+  <div class="post-content-outer">
+    <div class="post-intro">
+      <div class="post-title animate__animated  animate__fadeInUp">UnityShader 细分着色器与几何着色器</div>
+      <div class="meta-intro animate__animated  animate__fadeInUp">Dec 04 2022</div>
+      
+    </div>
+    <div class="post-content-inner">
+      <div class="post-content-inner-space">
+
+      </div>
+      <div class="post-content-main animate__animated  animate__fadeInUp">
+        <!-- top型目录 -->
+        
+        <p>最近开了草地渲染觉得很帅。就决定来学习一下如何制作。发现利用到了细分着色器，故此写篇博客来记录一下。</p>
+<p>在Unity种我们可以编程的Shader有四个。分别是</p>
+<ol>
+<li>顶点着色器(Vertex Shader)</li>
+<li>细分着色器(Tessellation Shader)</li>
+<li>几何着色器(Geometry Shader)</li>
+<li>片元着色器(Fragment Shader)<br>他们在渲染过程中如下</li>
+</ol>
+<p>
+        <span class="lazyload-img-span">
+        <img   
+           data-src="https://img-blog.csdnimg.cn/2019120418571368.jpg?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3UwMTAxMzM2MTA=,size_16,color_FFFFFF,t_70" >
+        </sapn>
+      </p>
+<p>我们今天的主角便是其中的<strong>曲面细分着色器(Tessellation Shader)</strong> ，曲面细分着色器在我们使用中分为三个步骤。准备数据——生成顶点和边——显示出来。结构如下图
+        <span class="lazyload-img-span">
+        <img   
+           data-src="https://pic1.zhimg.com/80/v2-2c8007a98ebade9e26c1c898c2a8d8f4_720w.webp" >
+        </sapn>
+      </p>
+<p>其中的控制着色器便是用于准备数据。而中间的是无法编程也无法配置的，最后一步便是计算结果的细分着色器。</p>
+<h2 id="语法结构"><a href="#语法结构" class="headerlink" title="语法结构"></a>语法结构</h2><p>在Unity中使用曲面细分着色器第一步需要在Unity中来声明函数和对应的着色器。跟声明顶点着色器和片元着色器一样，语法如下</p>
+<pre><code>#pragma hull hullProgram
+#pragma domain ds
+</code></pre>
+<p>hull便是我们的细分控制着色器，domain是我们的细分计算着色器。至于具体的内容我们后面再讲。我们现在需要知道细分着色器他的输入是什么，他干了什么事情，他的输出是什么，这样才能更好的去了解该怎么写代码。</p>
+<p>Tess输入是一个集合，它包含了每个顶点的属性，其中属性是每个顶点共享的</p>
+<p>Tess会根据我们输入的信息，来对面或者是边进行细分。具体的不同的信息需要不同的配置</p>
+<p>Tess的输出也很简单，便是我们处理好了的顶点信息。</p>
+<p>既然这个Shader需要输入信息，那么就需要写个结构体来存储，代码如下</p>
+<pre><code>struct TessVertex&#123;
+    float4 vertex:INTERNALTESSPOS;
+    float3 normal:NORMAL;
+    float4 tangent :TANGENT;
+    float2 uv :TEXCOORD0;
+&#125;;
+</code></pre>
+<p>因为我们是细分一个物体，所以只要把原本的顶点信息原封不动的传进来即可，不需要去做什么改动，需要注意的点也就只有vertex的语义本应该是POSITION，现在变成了INTERNALTESSPOS，这是因为编译器会报语义重用的错。</p>
+<pre><code>struct OutputPatchConstant&#123;
+    float edgb[3]:SV_TESSFACTOR;
+    float inside:SV_INSIDETESSFACTOR;
+&#125;;
+</code></pre>
+<p>这里还需要声明一个结构体，用于在细分的时候的控制。其中的<strong>SV_TESSFACTOR</strong>语义是定义了每条边上的细分程度。即指定的边会被分成多少段.而变量数组长度为3是指我们我们的三条边，<strong>SV_INSIDETESSFACTOR</strong>语义是内部细分度，指定内部再几个维度上被细分。<br>至此我们便写完了曲面细分着色器的战前准备。接下来我们便要去实现一下他的计算部分。</p>
+<p>首先我们需要实现前面指定的<strong>曲面细分控制着色器</strong>，整个函数如下</p>
+<pre><code>[UNITY_domain(&quot;tri&quot;)] //指输入的图元是三角形
+[UNITY_partitioning(&quot;fractional_odd&quot;)] //拆分edgb的规则
+[UNITY_outputtopology(&quot;triangle_cw&quot;)]//决定了产生的图元的朝向，cw为顺时针，ccw为逆时针
+[UNITY_patchconstantfunc(&quot;hsconst&quot;)]// 指定了计算数值的函数。
+[UNITY_outputcontrolpoints(3)] //指hull shader输出的顶点数量
+TessVertex hullProgram(InputPatch&lt;TessVertex,3&gt; patch ,uint id:SV_OUTPUTCONTROLPOINTID)&#123;
+    return patch[id];
+&#125;
+</code></pre>
+<p>在这个shader中我们大部分的内容都是在配置，而计算的部分较少，前面的几项配置很好理解，参数选择各位可以去网上搜索，这里不再过多叙述，这里要讲的是第四个配置项：**[UNITY_patchconstantfunc(“hsconst”)]**,它指定了一个方法，用于决定怎么计算细分线段。代码如下</p>
+<pre><code>OutputPatchConstant hsconst()&#123;
+    OutputPatchConstant o;
+    o.edgb[0] = _TessellationUniform;
+    o.edgb[1] = _TessellationUniform;
+    o.edgb[2] = _TessellationUniform;
+    o.inside = _TessellationUniform;
+    return o;
+&#125;
+</code></pre>
+<p>参数**_TessellationUniform<strong>一个float类型的变量，用于控制细分程度。其中可选的参数有两个，分别是</strong>InputPatch&lt;TessVertex,3&gt; patch** 和 <strong>uint patchID：SV_PrimitiveID</strong>，前者是一个Patch，参数TessVertex是我们顶点着色器的输出，3是因为一个三角形有3个顶点，后者是这个patch的唯一ID。（暂时不知道这俩参数有啥用，等以后看了具体的例子再来补充吧）</p>
+<p>让我们接着往下看，第六个是**UNITY_outputcontrolpoints(3)**。它是指定了我们每个图元输出的控制点的数量，不一定与输入的数量相同？</p>
+<p>最后便是我们的函数主题，它返回值是前面定义好了的顶点数据，而他的输入参数则需要细说<del>虽然我也不会</del>，首先是TessVertex，也就是输入的顶点信息，3则是一个patch，前面说了一个patch可以是三角形，四边形，线段，而我们前面又设置为了三角形，一个三角形有3个顶点嘛，所以这里便写3，而后一个参数<strong>uint id:SV_OUTPUTCONTROLPOINTID</strong>则是告知我们当前执行的顶点是patch的哪一个，因为该函数一次仅应输出一个顶点。Patch中的每个顶点都会调用一次它。在这里我们也可以写第三个参数 <strong>uint patchID：SV_PrimitiveID</strong>从而获得patch的id。</p>
+<p>接下来我们来实现细分计算着色器的内容</p>
+<pre><code>[UNITY_domain(&quot;tri&quot;)]
+VertexOutput ds(OutputPatchConstant trssFactors,const OutputPatch&lt;TessVertex,3&gt; patch,float3 bary:SV_DOMAINLOCATION)&#123;
+//bary 重心坐标
+    VertexInput v;
+    v.vertex = patch[0].vertex * bary.x + patch[1].vertex * bary.y + patch[2].vertex*bary.z;
+    v.tangent = patch[0].tangent * bary.x + patch[1].tangent *bary.y + patch[2].tangent *bary.z;
+    v.normal  = patch[0].normal *bary.x + patch[1].normal *bary.y + patch[2].normal * bary.z;
+    v.uv = patch[0].uv*bary.x + patch[1].uv*bary.y + patch[2].uv*bary.z;
+        
+    VertexOutput o = vert (v);
+    return o;
+&#125;
+</code></pre>
+<p>首先是第一行设置patch，不讲了，然后函数的主题，里面包含了顶点信息。输入的参数有细分参数<strong>trssFactors</strong>（就前面算过的那个）。第二个是patch不多说了，第三个参数bary则是重心空间（以重心为原点的坐标系）下的系数。用该系数与重心坐标还原到模型空间（虽然我不明白为什么，但看这样子这句话是必写的了）<br>最后我们将所有的顶点都转化到投影空间，vert函数如下</p>
+<pre><code>VertexOutput vert(VertexInput i)&#123;
+    VertexOutput o;
+    o.vertex = UnityObjectToClipPos(i.vertex);
+    o.uv = i.uv;
+    o.normal =i.normal;
+    o.tangent = i.tangent;
+    return o;
+&#125;
+</code></pre>
+<p>最终效果如下</p>
+<p>
+        <span class="lazyload-img-span">
+        <img   
+           data-src="/Image/%E6%9B%B2%E9%9D%A2%E7%BB%86%E5%88%86%E7%9D%80%E8%89%B2%E5%99%A8%E4%B8%8E%E5%87%A0%E4%BD%95%E7%9D%80%E8%89%B2%E5%99%A8/image.png" >
+        </sapn>
+      </p>
+<p>完整代码可以再参考资料第二个中找到</p>
+<h2 id="曲面细分参考"><a href="#曲面细分参考" class="headerlink" title="曲面细分参考"></a>曲面细分参考</h2><p><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/359999755">Unity渲染基础：URP下曲面细分的实现</a></p>
+<p><a target="_blank" rel="noopener" href="https://www.yuque.com/sugelameiyoudi-jadcc/okgm7e/xyx5h5">曲面细分着色器</a></p>
+<p><a target="_blank" rel="noopener" href="https://blog.csdn.net/suixinger_lmh/article/details/125140224">Shader学习_曲面细分着色器</a></p>
+<h2 id="几何着色器"><a href="#几何着色器" class="headerlink" title="几何着色器"></a>几何着色器</h2>
+        <!-- 分类文章 -->
+        
+      </div>
+      <div class="post-content-inner-space">
+        
+          <div class="space-toc-main animate__animated  animate__fadeInUp">
+            <ol class="space-toc"><li class="space-toc-item space-toc-level-2"><a class="space-toc-link" href="#%E8%AF%AD%E6%B3%95%E7%BB%93%E6%9E%84"><span class="space-toc-text">语法结构</span></a></li><li class="space-toc-item space-toc-level-2"><a class="space-toc-link" href="#%E6%9B%B2%E9%9D%A2%E7%BB%86%E5%88%86%E5%8F%82%E8%80%83"><span class="space-toc-text">曲面细分参考</span></a></li><li class="space-toc-item space-toc-level-2"><a class="space-toc-link" href="#%E5%87%A0%E4%BD%95%E7%9D%80%E8%89%B2%E5%99%A8"><span class="space-toc-text">几何着色器</span></a></li></ol>
+           </div>
+        
+      </div>
+   </div>
+    <!-- 评论 -->
+    
+  </div>
+</article>
+  </div>
+</div>
+
+
+
+<!-- 如果是home模式的话，不在首页就显示footer，如果不是home模式的话 所有都显示footer -->
+
+  <div class="footer-outer animate__animated  animate__fadeInUp">
+    <div class="footer-inner">
+    <div class="footer-text">
+    <p>Welcome 离谱小镇</p>
+
+    </div>
+    <div class="footer-contact">
+    <ul class="footer-ul">
+        
+        <li class="footer-li">
+            <a href="https://github.com/shuangrenxu123?tab=repositories" target="_blank">
+                <i class="ri-github-line"></i>
+            </a>
+        </li>
+        
+        <li class="footer-li">
+            <a href="mailto:1919802366@qq.com" target="_blank">
+                <i class="ri-mail-line"></i>
+            </a>
+        </li>
+        
+    </ul>
+    </div>
+    </div>
+</div>
+
+
+
+
+
+
+<script src="/js/white.js"></script>
+
+
+
+    
+      
+<script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@9.18.1/build/highlight.min.js"></script>
+
+      <script>hljs.initHighlightingOnLoad();</script>
+    
+
+</body>
+</html>
