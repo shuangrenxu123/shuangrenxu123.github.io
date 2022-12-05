@@ -183,7 +183,7 @@ TessVertex hullProgram(InputPatch&lt;TessVertex,3&gt; patch ,uint id:SV_OUTPUTCO
     return o;
 &#125;
 </code></pre>
-<p>参数**_TessellationUniform<strong>一个float类型的变量，用于控制细分程度。其中可选的参数有两个，分别是</strong>InputPatch&lt;TessVertex,3&gt; patch** 和 <strong>uint patchID：SV_PrimitiveID</strong>，前者是一个Patch，参数TessVertex是我们顶点着色器的输出，3是因为一个三角形有3个顶点，后者是这个patch的唯一ID。（暂时不知道这俩参数有啥用，等以后看了具体的例子再来补充吧）</p>
+<p>参数**_TessellationUniform<strong>一个float类型的变量，用于控制细分程度。其中可选的参数有两个，分别是</strong>InputPatch&lt;TessVertex,3&gt; patch** 和 <strong>uint patchID：SV_PrimitiveID</strong>，前者是一个Patch，参数TessVertex是我们顶点着色器的输出，3是因为一个三角形有3个顶点，我们可以利用这个变量来控制不同的切分因子，从而实现一些LOD的效果。后者是这个patch的唯一ID。</p>
 <p>让我们接着往下看，第六个是**UNITY_outputcontrolpoints(3)**。它是指定了我们每个图元输出的控制点的数量，不一定与输入的数量相同？</p>
 <p>最后便是我们的函数主题，它返回值是前面定义好了的顶点数据，而他的输入参数则需要细说<del>虽然我也不会</del>，首先是TessVertex，也就是输入的顶点信息，3则是一个patch，前面说了一个patch可以是三角形，四边形，线段，而我们前面又设置为了三角形，一个三角形有3个顶点嘛，所以这里便写3，而后一个参数<strong>uint id:SV_OUTPUTCONTROLPOINTID</strong>则是告知我们当前执行的顶点是patch的哪一个，因为该函数一次仅应输出一个顶点。Patch中的每个顶点都会调用一次它。在这里我们也可以写第三个参数 <strong>uint patchID：SV_PrimitiveID</strong>从而获得patch的id。</p>
 <p>接下来我们来实现细分计算着色器的内容</p>
@@ -200,7 +200,7 @@ VertexOutput ds(OutputPatchConstant trssFactors,const OutputPatch&lt;TessVertex,
     return o;
 &#125;
 </code></pre>
-<p>首先是第一行设置patch，不讲了，然后函数的主题，里面包含了顶点信息。输入的参数有细分参数<strong>trssFactors</strong>（就前面算过的那个）。第二个是patch不多说了，第三个参数bary则是重心空间（以重心为原点的坐标系）下的系数。用该系数与重心坐标还原到模型空间（虽然我不明白为什么，但看这样子这句话是必写的了）<br>最后我们将所有的顶点都转化到投影空间，vert函数如下</p>
+<p>首先是第一行设置图元类型，不讲了，然后函数的主题，里面包含了顶点信息。输入的参数有细分参数<strong>trssFactors</strong>（就前面算过的那个）。第二个是patch不多说了，第三个参数bary则是重心空间（以重心为原点的坐标系）下的系数。用该系数与重心坐标还原到模型空间，相关的信息可以去看初中数学关于重心的解释。总之我们可以通过系数来获得一个顶点在原始三角形的相对位置。<br>最后我们将所有的顶点都转化到投影空间，vert函数如下</p>
 <pre><code>VertexOutput vert(VertexInput i)&#123;
     VertexOutput o;
     o.vertex = UnityObjectToClipPos(i.vertex);
@@ -210,17 +210,18 @@ VertexOutput ds(OutputPatchConstant trssFactors,const OutputPatch&lt;TessVertex,
     return o;
 &#125;
 </code></pre>
-<p>最终效果如下</p>
+<p>最终效果如下，完整代码可以再参考资料第二个中找到</p>
 <p>
         <span class="lazyload-img-span">
         <img   
            data-src="/Image/%E6%9B%B2%E9%9D%A2%E7%BB%86%E5%88%86%E7%9D%80%E8%89%B2%E5%99%A8%E4%B8%8E%E5%87%A0%E4%BD%95%E7%9D%80%E8%89%B2%E5%99%A8/image.png" >
         </sapn>
       </p>
-<p>完整代码可以再参考资料第二个中找到</p>
+<p>总结：我们首先是在曲面计算着色器中来配置相关的信息。通过输入的原始面片，我们可以计算出在这个面片内所细分出来的顶点的重心坐标，然后在细分着色器中来具体的计算出它的值。曲面细分着色器现在常用于处理LOD，原理则是在不同的情况下选择不同的细分因子，具体可以从Unity的官方例子中和参考资料中找到。</p>
 <h2 id="曲面细分参考"><a href="#曲面细分参考" class="headerlink" title="曲面细分参考"></a>曲面细分参考</h2><p><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/359999755">Unity渲染基础：URP下曲面细分的实现</a></p>
 <p><a target="_blank" rel="noopener" href="https://www.yuque.com/sugelameiyoudi-jadcc/okgm7e/xyx5h5">曲面细分着色器</a></p>
 <p><a target="_blank" rel="noopener" href="https://blog.csdn.net/suixinger_lmh/article/details/125140224">Shader学习_曲面细分着色器</a></p>
+<p><a target="_blank" rel="noopener" href="https://blog.csdn.net/longger0000/article/details/125594122?ops_request_misc=%257B%2522request%255Fid%2522%253A%2522167020875416782388010574%2522%252C%2522scm%2522%253A%252220140713.130102334..%2522%257D&request_id=167020875416782388010574&biz_id=0&utm_medium=distribute.pc_search_result.none-task-blog-2~all~sobaiduend~default-1-125594122-null-null.142%5Ev67%5Econtrol,201%5Ev4%5Eadd_ask,213%5Ev2%5Et3_esquery_v2&utm_term=unity%20%E6%9B%B2%E9%9D%A2%E7%BB%86%E5%88%86%E7%9D%80%E8%89%B2%E5%99%A8&spm=1018.2226.3001.4187">曲面细分着色器（翻译版本）</a></p>
 <h2 id="几何着色器"><a href="#几何着色器" class="headerlink" title="几何着色器"></a>几何着色器</h2>
         <!-- 分类文章 -->
         
