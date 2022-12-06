@@ -119,7 +119,7 @@
       <div class="post-content-main animate__animated  animate__fadeInUp">
         <!-- top型目录 -->
         
-        <p>最近开了草地渲染觉得很帅。就决定来学习一下如何制作。发现利用到了细分着色器，故此写篇博客来记录一下。</p>
+        <h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>最近开了草地渲染觉得很帅。就决定来学习一下如何制作。发现利用到了细分着色器，故此写篇博客来记录一下。</p>
 <p>在Unity种我们可以编程的Shader有四个。分别是</p>
 <ol>
 <li>顶点着色器(Vertex Shader)</li>
@@ -222,14 +222,68 @@ VertexOutput ds(OutputPatchConstant trssFactors,const OutputPatch&lt;TessVertex,
 <p><a target="_blank" rel="noopener" href="https://www.yuque.com/sugelameiyoudi-jadcc/okgm7e/xyx5h5">曲面细分着色器</a></p>
 <p><a target="_blank" rel="noopener" href="https://blog.csdn.net/suixinger_lmh/article/details/125140224">Shader学习_曲面细分着色器</a></p>
 <p><a target="_blank" rel="noopener" href="https://blog.csdn.net/longger0000/article/details/125594122?ops_request_misc=%257B%2522request%255Fid%2522%253A%2522167020875416782388010574%2522%252C%2522scm%2522%253A%252220140713.130102334..%2522%257D&request_id=167020875416782388010574&biz_id=0&utm_medium=distribute.pc_search_result.none-task-blog-2~all~sobaiduend~default-1-125594122-null-null.142%5Ev67%5Econtrol,201%5Ev4%5Eadd_ask,213%5Ev2%5Et3_esquery_v2&utm_term=unity%20%E6%9B%B2%E9%9D%A2%E7%BB%86%E5%88%86%E7%9D%80%E8%89%B2%E5%99%A8&spm=1018.2226.3001.4187">曲面细分着色器（翻译版本）</a></p>
-<h2 id="几何着色器"><a href="#几何着色器" class="headerlink" title="几何着色器"></a>几何着色器</h2>
+<h2 id="几何着色器介绍"><a href="#几何着色器介绍" class="headerlink" title="几何着色器介绍"></a>几何着色器介绍</h2><p>如果说曲面细分着色器是在已有的基础上依靠规则增加顶点，那我们的几何着色器就是无中生有，在已有的定点上来生成新的顶点，而且可以生成不止一个，十分的厉害。</p>
+<p>现在让我们来看看一个最简单的几何着色器长什么样</p>
+<pre><code>#pragma geometry geom
+[maxvertexcount(4)] 
+void geom(point v2g input[1],inout PointStream&lt;g2f&gt; outStream)&#123; 
+    g2f o=(g2f)0; 
+    o.vertex=input[0].vertex; 
+    o.uv=input[0].uv;   
+    outStream.Append(o); 
+&#125;
+</code></pre>
+<p>第一行定义函数，从第二行才是真正的属于几何着色器部分。他定义了我们单次调用的最大可以生成多少个顶点，我们在后面的具体代码中添加到流中的顶点数量不能超过这个。处于性能考虑，这个最大定点数应该尽可能小。第三行是我们的函数主体，他不需要有返回值，而是直接把返回值写入到流中，也就是PointStream<g2f>。而输入的参数则是v2g类型，在v2g类型定义的前面则是我们输入的图元类型。它可以是点，线或者是面，每一个图元都会调用一次函数的具体内容。我们可以通过变量input来访问到该图元的具体顶点。</p>
+<p>与前面的类型相同，我们输出流的类型也是分为了点，线，面。他们的类型分别为<strong>PointStream,LineStream,TriangleSteam</strong>三种。 我们只需要定义好顶点的位置然后输入到流中即可。需要注意的是，几何着色器不会保留原来的信息，所有的输出都要我们自己来重新定义</p>
+<p>上面的代码就是将原本模型都只输出成一个点，如下图<br>
+        <span class="lazyload-img-span">
+        <img   
+           data-src="https://img2018.cnblogs.com/blog/760344/201904/760344-20190412213707245-1119878193.jpg" >
+        </sapn>
+      </p>
+<p>在参考资料中我们可以找到Line版本和Triangle版本。</p>
+<h2 id="几何着色器作用"><a href="#几何着色器作用" class="headerlink" title="几何着色器作用"></a>几何着色器作用</h2><p>因为几何着色器具有更改显示的原理，因此我们可以利用其来做一些特效，比如一些消散效果，就是通过判断点的坐标值来选择性的将他们变成点或者是面，从而达到了一种自然的消散效果。<br>
+        <span class="lazyload-img-span">
+        <img   
+           data-src="https://img-blog.csdnimg.cn/20200111212852873.gif" >
+        </sapn>
+      <a target="_blank" rel="noopener" href="https://blog.csdn.net/a672934675/article/details/103940578">其他人的效果图</a><br>也可以通过一些相关的信息，比如顶点法线方向，来构建一些我们需要的效果，比如一个会缩放的 “点” 球。这些特效本文也不给出代码了（因为我自己都没写）。</p>
+<p>我们也可以通过与曲面细分着色器相结合来生成GPU版本的草地，虽然据说效率不如其他的办法，且适用性比较低（在手机端几何着色器不常用）。但是可定制化十分的高。我们也是通过这个例子来具体讲解几何着色器的使用，代码中关于一些结构体的传递，里面都基本上都说只有uv和vertex数据，因此就不放出来了，只放关键代码</p>
+<pre><code>[maxvertexcount(3)]
+void geom(point t2g input[1],inout TriangleStream&lt;t2g&gt; outstream)&#123;
+    float3 pos = input[0].vertex;
+    float3x3 facingRotationMatrix = AngleAxis3X3(rand(pos) * UNITY_TWO_PI,float3(0,1,0));
+    float3x3 bendRotationMatrix = AngleAxis3X3(rand(pos.zzx) *  _BendRotationRandom* UNITY_PI * 0.5f,float3(0,0.2,0.5));
+
+    float3x3 transform = mul(facingRotationMatrix,bendRotationMatrix);
+
+    float height = (rand(pos.zyx) * 2 - 1) * _BladeHeightRandom + _BladeHeight;
+    float width = (rand(pos.xzy) * 2 - 1) * _BladeWidthRandom + _BladeWidth;
+
+    outstream.Append(vertexOutput(pos + mul(transform,float3(width,0,0)),float2(0.0,0.0)));
+    outstream.Append(vertexOutput(pos + mul(transform,float3(-width,0,0)),float2(1.0,0.0)));
+    outstream.Append(vertexOutput(pos + mul(transform,float3(0,height,0)),float2(0.5,1.0)));           
+&#125;
+</code></pre>
+<p>关于AngleAxis3x3，他随机返回一个旋转矩阵用于控制草的弯曲和旋转。其中我们的代码中<strong>facingRotationMatrix</strong>负责草的旋转，而<strong>bendRotationMatrix</strong>负责草的弯曲，<br>后面的代码中我们在面片的第一个顶点上生成了一个三角形，并重新赋予了uv值，达到让每个草的uv独立，而不是整个草地用一套uv值。</p>
+<p>然后便是添加流中，这里的添加顺序也要注意，只有顺时针的时候才能被正常显示出来，而我在关闭了剔除，所以这里的顺序不用关心。</p>
+<p>一个草地的核心代码也就是如此的简单，我们利用曲面细分来生成更多的顶点，然后用几何着色器在顶点上生成一个三角形。至于代码的融合就交给各位读者来自己尝试一下了。最终生成的草地效果如下<br>
+        <span class="lazyload-img-span">
+        <img   
+           data-src="/Image/%E6%9B%B2%E9%9D%A2%E7%BB%86%E5%88%86%E7%9D%80%E8%89%B2%E5%99%A8%E4%B8%8E%E5%87%A0%E4%BD%95%E7%9D%80%E8%89%B2%E5%99%A8/%E8%8D%89%E5%9C%B0.jpg" >
+        </sapn>
+      </p>
+<p>我们的草地还有许多的不足，比如没有与物体的交互，无法接收阴影，弯曲效果太差，没有随风摇晃的效果（等我实现了我会回来补充）。这些效果仍然需要我去慢慢的学习，学习永无止境，我们不能因为短时间没有效果便选择放弃。愿，在以后的学习之路我们可以越走越远。</p>
+<h2 id="几何着色器参考"><a href="#几何着色器参考" class="headerlink" title="几何着色器参考"></a>几何着色器参考</h2><p><a target="_blank" rel="noopener" href="https://blog.csdn.net/u012722551/article/details/104281175">点线面的构建</a></p>
+<p><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/433385999">利用几何着色器和曲面细分着色器实现一个草地</a></p>
+
         <!-- 分类文章 -->
         
       </div>
       <div class="post-content-inner-space">
         
           <div class="space-toc-main animate__animated  animate__fadeInUp">
-            <ol class="space-toc"><li class="space-toc-item space-toc-level-2"><a class="space-toc-link" href="#%E8%AF%AD%E6%B3%95%E7%BB%93%E6%9E%84"><span class="space-toc-text">语法结构</span></a></li><li class="space-toc-item space-toc-level-2"><a class="space-toc-link" href="#%E6%9B%B2%E9%9D%A2%E7%BB%86%E5%88%86%E5%8F%82%E8%80%83"><span class="space-toc-text">曲面细分参考</span></a></li><li class="space-toc-item space-toc-level-2"><a class="space-toc-link" href="#%E5%87%A0%E4%BD%95%E7%9D%80%E8%89%B2%E5%99%A8"><span class="space-toc-text">几何着色器</span></a></li></ol>
+            <ol class="space-toc"><li class="space-toc-item space-toc-level-2"><a class="space-toc-link" href="#%E5%89%8D%E8%A8%80"><span class="space-toc-text">前言</span></a></li><li class="space-toc-item space-toc-level-2"><a class="space-toc-link" href="#%E8%AF%AD%E6%B3%95%E7%BB%93%E6%9E%84"><span class="space-toc-text">语法结构</span></a></li><li class="space-toc-item space-toc-level-2"><a class="space-toc-link" href="#%E6%9B%B2%E9%9D%A2%E7%BB%86%E5%88%86%E5%8F%82%E8%80%83"><span class="space-toc-text">曲面细分参考</span></a></li><li class="space-toc-item space-toc-level-2"><a class="space-toc-link" href="#%E5%87%A0%E4%BD%95%E7%9D%80%E8%89%B2%E5%99%A8%E4%BB%8B%E7%BB%8D"><span class="space-toc-text">几何着色器介绍</span></a></li><li class="space-toc-item space-toc-level-2"><a class="space-toc-link" href="#%E5%87%A0%E4%BD%95%E7%9D%80%E8%89%B2%E5%99%A8%E4%BD%9C%E7%94%A8"><span class="space-toc-text">几何着色器作用</span></a></li><li class="space-toc-item space-toc-level-2"><a class="space-toc-link" href="#%E5%87%A0%E4%BD%95%E7%9D%80%E8%89%B2%E5%99%A8%E5%8F%82%E8%80%83"><span class="space-toc-text">几何着色器参考</span></a></li></ol>
            </div>
         
       </div>
