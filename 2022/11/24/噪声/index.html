@@ -6,7 +6,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>  各种噪声 |    DickCat.</title>
+  <title>  各种噪声的生成简介 |    DickCat.</title>
   <meta name="description" content="A minimalist theme for hexo.">
   <!-- 标签页图标 -->
   
@@ -108,7 +108,7 @@
 <article class="post-inner">
   <div class="post-content-outer">
     <div class="post-intro">
-      <div class="post-title animate__animated  animate__fadeInUp">各种噪声</div>
+      <div class="post-title animate__animated  animate__fadeInUp">各种噪声的生成简介</div>
       <div class="meta-intro animate__animated  animate__fadeInUp">Nov 24 2022</div>
       
     </div>
@@ -201,7 +201,42 @@ void CSMain (uint3 id : SV_DispatchThreadID)
     return lerp(v1,v2,w.y);
 &#125;
 </code></pre>
-<h2 id="WorleyNoise"><a href="#WorleyNoise" class="headerlink" title="WorleyNoise"></a>WorleyNoise</h2><p>又被称之为泰勒多边形，细胞噪声。可以用于体积云的制作等方面。而一个WorleyNoise噪声的生成也与我们前面两个的生成不太一样。这一次我们不再是基于晶格来生成，而是基于晶胞</p>
+<h2 id="WorleyNoise"><a href="#WorleyNoise" class="headerlink" title="WorleyNoise"></a>WorleyNoise</h2><p>又被称之为泰勒多边形，细胞噪声。可以用于体积云的制作等方面。而一个WorleyNoise噪声的生成也与我们前面两个的生成不太一样。这一次我们不再是基于晶格来生成，而是基于晶胞（虽然文章是这么说的，但是我看了下实现还是靠晶格来实现的）。<br>一个细胞噪声的生成大致如下，<br>1.我们先划分好晶格，然后确定输入点所在的晶格</p>
+<p>2.确保自己所在的晶格以及周围八个晶格，共九个晶格内一定最少有一个特征点。</p>
+<p>3.求出我们的点到九个晶格内特征点的最短路径。最短路径便是该点的值<br>WorleyNoise的生成就好比是在一些点上来蔓延开，跟力扣上面的小岛问题很像。我们这里就直接给出代码，代码的来源在参考中可以找到，这里也只是做一个讲解来帮助理解.</p>
+<pre><code>float2 random2(float2 p)
+&#123;
+    return frac(sin(float2(dot(p, float2(127.1, 311.7)), dot(p, float2(269.5, 183.3)))) * 43758.5453);
+&#125;
+float WorleyNoise(float2 p)&#123;
+    float min_dist = 1000;
+    float2 pi = floor(p);
+    float2 pf = frac(p);
+    for(int m=-1;m&lt;=1;m++)&#123;
+        for(int n=-1;n&lt;= 1;n++)&#123;
+            float2 sp = (pi +float2(m,n));
+            sp += random2(sp);
+            float dist= distance(p,sp);
+            min_dist = min(dist,min_dist);
+        &#125;
+    &#125;
+    return min_dist;
+&#125;
+</code></pre>
+<p>首先我们声明了距离变量，和坐标的整数部分与小数部分，需要注意的是这里的整数与小数其实是按照我们的晶格而言的。比如我在第二个晶格内，那这里的整数部分就应该是（1，0）。后面一个循环则是让我们在外面的晶格中生成特定值。我们在固定的点加上一个随机的变量，也就是 **sp+random(sp)**；便是特定值的坐标，由于我们的晶格点是一个正方形的左下角，所以这个做法一定可以在九个晶格内生成一个特定值。</p>
+<p>
+        <span class="lazyload-img-span">
+        <img   
+           data-src="/Image/%E5%99%AA%E5%A3%B0/WorleyNoise.png" >
+        </sapn>
+      </p>
+<p>（图画的不好，请勿介意）就如上图，红色的是我们的晶格点。而蓝色所包裹住的晶格则是我们特定值所生成的可能位置，由图很明显就能看出来一定最少能生成四个点在我们的九个晶格内。然后就是循环判断我们的输入点到这几个特征点的距离，并找出最小距离返回。</p>
+<p>最终结果展示<br>
+        <span class="lazyload-img-span">
+        <img   
+           data-src="/Image/%E5%99%AA%E5%A3%B0/wn.png" >
+        </sapn>
+      </p>
 <h2 id="分行噪声-FBM"><a href="#分行噪声-FBM" class="headerlink" title="分行噪声(FBM)"></a>分行噪声(FBM)</h2><p>我们学会了前面的知识点便可以自己去实现一些噪声图，但是这样生成的噪声图十分的无趣，我们可以利用噪声图组合来得到不同的结果。比如将ValueNoise与PerlinNoise相加，这里我们介绍一种让图变得细腻的方法。利用不同的公式，我们便可以得到不同的噪声图，这便是分形噪声。<br>而分形噪声的实现也很简单，我们只需要讲两张图根据他们的权重加起来即可（没错就是这么粗暴），那么是如何评价一个噪声图的频率是否高呢？<br>很简单，看他过渡是否多即可。因此白噪声是频率很高的噪音图，那么对于我们的代码应该怎么理解呢。先看以下代码</p>
 <pre><code>float ValueNoise(float2 p)
 &#123;
@@ -234,7 +269,7 @@ float r =ValueNoise(id.xy / scale);
 &#125;
 </code></pre>
 <p>在代码中我们一步步降低了高频噪声的权重。以一个低频的噪声图为基准来将他们相加起来，就可以实现一个以低频噪声图为大概轮廓，高频噪声图来提供细节的噪声图。另外的例子是我们可以通过一张普通的噪声图加上以一个圆为大概轮廓（即圆心的值为1，边上为0，离圆心越远值越小）的噪声图，就可以得到一个随机生成的小岛，具体的可以去给出的参考中红帽子的链接中了解。</p>
-<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><p><a target="_blank" rel="noopener" href="https://blog.csdn.net/candycat1992/article/details/50346469">冯乐乐大佬的文章</a><br><a target="_blank" rel="noopener" href="https://blog.csdn.net/weixin_42825810/article/details/109311631">用ComputeShader来实现各种噪声</a><br><a target="_blank" rel="noopener" href="https://www.redblobgames.com/maps/terrain-from-noise/">Red Blob</a></p>
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><p><a target="_blank" rel="noopener" href="https://blog.csdn.net/candycat1992/article/details/50346469">冯乐乐大佬的文章</a><br><a target="_blank" rel="noopener" href="https://blog.csdn.net/weixin_42825810/article/details/109311631">用ComputeShader来实现各种噪声</a><br><a target="_blank" rel="noopener" href="https://www.redblobgames.com/maps/terrain-from-noise/">Red Blob关于噪声的细节知识</a></p>
 
         <!-- 分类文章 -->
         
