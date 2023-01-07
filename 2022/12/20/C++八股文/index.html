@@ -126,7 +126,70 @@
 <p>当我们给一个方法加上一个virtual后，类的内存占用将会增加 8 字节，也就是增加了一个地址，这串地址则指向另一个表。表中存储了我们每个方法的具体地址。当我们是同一个类型的对象时。他们的虚表都是同一个。而对于继承过来的B类型。他的虚表便不是前面那个了。他的表中会记录属于自己的 Virtual的方法。总而言之当有了虚表以后，我们的函数才能记录属于自己的那部分实现，</p>
 <p>虚表会改变记录的仅仅是标记了virtual的函数，而没有标记的函数在虚表中的记录依然是定义类型的地址。</p>
 <p>题外话：cpp中我们在最终的编译后是没有类的概念的，一切皆是地址，所以我们可以做到把一个类变成一个int，把别人的类的虚函数表拿来给这个类使用等等骚操作。</p>
-<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><p><a target="_blank" rel="noopener" href="https://blog.csdn.net/Mr_kanger/article/details/110482868">cpp类的内存占用</a><br><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/563418849">cpp虚函数表</a></p>
+<h2 id="static"><a href="#static" class="headerlink" title="static"></a>static</h2><p>static在不同的地方使用时候会有不同的效果。<br>当我们在类外使用的时候，他会将变量视为本文件(.cpp)可见。当我们在两个cpp里面声明同一个变量的话，那么会产生编译错误，这时候就可以使用<strong>static</strong>关键字或<strong>extern</strong>关键字，前者是使变量仅在本文件可见，后者意思是我已经声明过这个变量了。<br>在类和结构体内的时候，static则表示是静态变量与静态方法与静态方法。静态变量意味着我们我们在所有的实例都是共享同一个变量。但是他依然是不存在的，我们需要在结构体外面来实例化他。<br>    #include <iostream><br>    using namespace std;<br>    struct Entity<br>    {<br>        static int x;<br>        void print()<br>        {<br>            cout &lt;&lt; x &lt;&lt; endl;<br>        }<br>    };<br>    int Entity::x;<br>    int main()<br>    {<br>        Entity e1;<br>        e1.x &#x3D; 1;<br>        cin.get();<br>    }<br>对于静态变量，我们就可以通过类名来直接访问，静态方法只允许访问静态变量。即使是对象也是如此，类的方法与普通写在外面的方法并没有区别。我们之所以可以通过一个对象来调用一个类，是因为我们将自身的地址当作参数给传递了进去</p>
+<p>第三种情况则是我们可以将一个变量的声明周期给延长至全局。即我们将一个函数循环内的变量设置为static。即使我们退出了循环，这个变量依旧存在<br>    #include <iostream><br>    #include <string><br>    using namespace std; </p>
+<pre><code>void demo() 
+&#123; 
+    // static variable 
+    static int count = 0; 
+    cout &lt;&lt; count &lt;&lt; &quot; &quot;; 
+    count++; 
+&#125; 
+int main() 
+&#123; 
+    for (int i=0; i&lt;5; i++)	 
+        demo(); 
+    return 0; 
+&#125;
+//输出 0 1 2 3 4 
+</code></pre>
+<p>如上 </p>
+<h2 id="面向对象"><a href="#面向对象" class="headerlink" title="面向对象"></a>面向对象</h2><p>我们在普通的声明对象的时候，他会在生命周期结束了以后自己销毁</p>
+<pre><code>A a;//声明了一个变量a
+A* a = new A();//利用new来声明一个变量
+delete a;//释放内存
+</code></pre>
+<p>new会在堆上分配一块类型大小的变量，然后用括号内的参数来实例化这个变量。他所返回的则是该类型的指针。用new来声明的变量他不会自己释放掉，必须调用delete来释放。以避免内存泄漏。如果你不想自己管理内存的话，则可以考虑使用智能指针。</p>
+<h3 id="构造函数"><a href="#构造函数" class="headerlink" title="构造函数"></a>构造函数</h3><p>在cpp中构造函数是和C#一样，需要类名和方法名相同，但cpp可以在构造函数后面来初始化变量，比如下面这样</p>
+<pre><code>Entity(int x, int y) : x(x), y(y) &#123;&#125;  //带参数，用来初始化x和y
+</code></pre>
+<p>我们也可以删除默认构造函数</p>
+<pre><code>class Log&#123;
+public:
+    Log() = delete;  //删除默认构造函数
+&#125;
+</code></pre>
+<p>当我们用new来实例化函数的时候，他会帮我们调用构造函数，但是使用molloc的时候不会。使用new实例化的变量，会在调用delete的时候来调用析构函数。</p>
+<h3 id="继承"><a href="#继承" class="headerlink" title="继承"></a>继承</h3><p>CPP中的继承写法与C#类似。但是Cpp允许多继承。这也就意味着CPP中没有接口这一说法了。派生类拥有基类的全部成员函数和成员变量，不论是private、protected、public。需要注意的是：在派生类的各个成员函数中，不能访问基类的private成员。并且我们是可以拥有相同名字的变量（即父类的某个变量和子类的变量可以同名）。在继承的时候我们要写明白继承的类型。大致包含以下几种</p>
+<p>公共继承：父类私有权限变量不可访问，公共权限和保护权限变量照常继承；</p>
+<p>保护继承：父类私有权限变量不可访问，公共权限和保护权限变量变成自己的保护权限变量；</p>
+<p>私有权限：父类私有权限变量不可访问，公共权限和保护权限变量变成自己的私有权限变量；</p>
+<p>在Cpp多继承中，他们的构造关系如下<br>先构造基类</p>
+<p>再构造成员</p>
+<p>最后构造自身（调用构造函数）</p>
+<p>基类构造顺序由派生层次决定：最远的基类最先构造 成员构造顺序和定义顺序符合 析构函数的析构顺序与构造相反</p>
+<p>在多继承同名的情况下。我们默认访问的是派生类型的变量，如果我们想要访问父类的变量则可以加上作用域。在多继承的情况下也是如此。在一些特殊情况下，我们会实现菱形继承的情况。即B，C都继承自A。而我们的D又继承B，C。那么我们的D类中就会有两个A的数据，这很显然是我们不想看到的。那么我们可以在B和C的前面写上virtual，这样我们便会只有一个A的数据。变成以下的形势<br>
+        <span class="lazyload-img-span">
+        <img   
+           data-src="https://img-blog.csdnimg.cn/20200621200547559.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L29saXZpYTEyMzQ0MzIx,size_16,color_FFFFFF,t_70" >
+        </sapn>
+      </p>
+<p>我们也可以实现虚实结合，即B，C前面写virtual，而继承自A的Z前面不写，那么就会变成下面这样<br>
+        <span class="lazyload-img-span">
+        <img   
+           data-src="https://img-blog.csdnimg.cn/20200621204715388.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L29saXZpYTEyMzQ0MzIx,size_16,color_FFFFFF,t_70" >
+        </sapn>
+      <br>对于虚拟继承的构造顺序是先调用虚基类的构造函数，再调用非虚继承的构造。如果某个父类的构造函数已经呗调用了则只会被调用一次。对于多重继承的话，则是一层一层的往上构造。</p>
+<h3 id="虚函数与抽象类"><a href="#虚函数与抽象类" class="headerlink" title="虚函数与抽象类"></a>虚函数与抽象类</h3><p>虚函数的写法</p>
+<pre><code>virtual void funtionName()&#123;
+
+&#125;
+</code></pre>
+<p>具体的虚函数表可以看前面的总结，对于一个不想实现的虚函数。我们可以通过以下写法</p>
+<pre><code>virtual void funtionName()  = 0;//纯虚函数
+</code></pre>
+<p>对于一个有纯虚函数的类，被称之为抽象类。当一个类所有的函数都是纯虚函数时候，它也可以看成是C#中的接口了<br>我们不能实例化一个抽象类。当我们的子类没有实现纯虚函数时候，那么他也是一个抽象类，对于实现一个虚函数，我们子类的实现函数可以不写virtual关键字</p>
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><p><a target="_blank" rel="noopener" href="https://blog.csdn.net/Mr_kanger/article/details/110482868">cpp类的内存占用</a><br><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/563418849">cpp虚函数表</a><br><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/553387258">cpp Select和面向对象</a></p>
 
         <!-- 分类文章 -->
         
@@ -134,7 +197,7 @@
       <div class="post-content-inner-space">
         
           <div class="space-toc-main animate__animated  animate__fadeInUp">
-            <ol class="space-toc"><li class="space-toc-item space-toc-level-2"><a class="space-toc-link" href="#%E8%99%9A%E5%87%BD%E6%95%B0%E8%A1%A8%E6%80%BB%E7%BB%93"><span class="space-toc-text">虚函数表总结</span></a></li><li class="space-toc-item space-toc-level-2"><a class="space-toc-link" href="#%E5%8F%82%E8%80%83"><span class="space-toc-text">参考</span></a></li></ol>
+            <ol class="space-toc"><li class="space-toc-item space-toc-level-2"><a class="space-toc-link" href="#%E8%99%9A%E5%87%BD%E6%95%B0%E8%A1%A8%E6%80%BB%E7%BB%93"><span class="space-toc-text">虚函数表总结</span></a></li><li class="space-toc-item space-toc-level-2"><a class="space-toc-link" href="#static"><span class="space-toc-text">static</span></a></li><li class="space-toc-item space-toc-level-2"><a class="space-toc-link" href="#%E9%9D%A2%E5%90%91%E5%AF%B9%E8%B1%A1"><span class="space-toc-text">面向对象</span></a></li><li class="space-toc-item space-toc-level-2"><a class="space-toc-link" href="#%E5%8F%82%E8%80%83"><span class="space-toc-text">参考</span></a></li></ol>
            </div>
         
       </div>
