@@ -1364,6 +1364,8 @@ SubShader
     &#125;
 &#125;
 &#125;
+
+如果我们想控制一个物体的shader
 </code></pre>
 <h4 id="混合命令"><a href="#混合命令" class="headerlink" title="混合命令"></a>混合命令</h4><p>由于我们关于透明的检测，因此会出现一种透明物体自己看自己还透明的的奇怪现象，即物体内部之间的透明效果。<br>对此我们可以使用两个Pass块来解决问题，第一个Pass开启深度写入，但不输出颜色，他仅仅是为了将该模型的深度值写入深度缓冲，由于使用ColorMask且设置为0，因此他只会更改深度区域，而不会更改颜色缓冲区的值，对于他后面的物体而言，我们只知道他前面有一个物体，而不会更改该片元的颜色，</p>
 <pre><code>ColorMask 0
@@ -1902,7 +1904,7 @@ float _Value;
     <ul class="footer-ul">
         
         <li class="footer-li">
-            <a href="https://github.com/shuangrenxu123?tab=repositories" target="_blank">
+            <a href="https://github.com/shuangrenxu123/GameCode" target="_blank">
                 <i class="ri-github-line"></i>
             </a>
         </li>
