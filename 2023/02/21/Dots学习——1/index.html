@@ -1,0 +1,351 @@
+
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>  Dots学习——1 |    DickCat.</title>
+  <meta name="description" content="A minimalist theme for hexo.">
+  <!-- 标签页图标 -->
+  
+
+  <!-- 图标库 -->
+  <link href="https://cdn.jsdelivr.net/npm/remixicon@2.2.0/fonts/remixicon.css" rel="stylesheet">
+  <!-- 动画库 -->
+  
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/fushaolei/cdn-white@1.0/css/animate.css"/>
+  
+  <!-- css文件 -->
+  
+<link rel="stylesheet" href="/css/white.css">
+
+  <!-- 代码高亮 -->
+  
+    
+      
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@10.1.1/styles/github.css">
+
+    
+  
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+
+<body>
+
+<div class="menu-outer">
+    <div class="menu-inner">
+      <div class="menu-site-name  animate__animated  animate__fadeInUp">
+        <a href="/">
+          DickCat.
+        </a>
+        
+      </div>
+      <div class="menu-group">
+        <ul class="menu-ul">
+        
+          <a href="/" class="nav-link">
+            <li class="menu-li  animate__animated  animate__fadeInUp">
+              没啥用的主页
+            </li>
+          </a>
+        
+          <a href="/archives" class="nav-link">
+            <li class="menu-li  animate__animated  animate__fadeInUp">
+              学习杂记
+            </li>
+          </a>
+        
+        
+        
+          <li class="menu-li animate__animated  animate__fadeInUp" id="mobile-menu">
+            <i class="ri-menu-line"></i>
+          </li>
+        
+        </ul>
+
+      </div>
+
+    </div>
+</div>
+<div id="mobile-main" class="animate__animated  animate__fadeIn">
+  <div class="mobile-menu-inner">
+    <div class="mobile-menu-site-name animate__animated  animate__fadeInUp">
+      <a href="/">
+        DickCat.
+      </a>
+    </div>
+    <div class="mobile-menu-group" id="mobile-close">
+      <i class="ri-close-line"></i>
+    </div>
+
+  </div>
+
+  <div class="mobile-menu-div">
+  
+    <a href="/" class="mobile-nav-link">
+      <div class="mobile-menu-child animate__animated  animate__fadeInUp">
+        <span>没啥用的主页</span>
+      </div>
+    </a>
+  
+    <a href="/archives" class="mobile-nav-link">
+      <div class="mobile-menu-child animate__animated  animate__fadeInUp">
+        <span>学习杂记</span>
+      </div>
+    </a>
+  
+  
+  </div>
+
+
+</div>
+
+<div class="body-outer">
+  <div class="body-inner">
+    
+<article class="post-inner">
+  <div class="post-content-outer">
+    <div class="post-intro">
+      <div class="post-title animate__animated  animate__fadeInUp">Dots学习——1</div>
+      <div class="meta-intro animate__animated  animate__fadeInUp">Feb 21 2023</div>
+      
+    </div>
+    <div class="post-content-inner">
+      <div class="post-content-inner-space">
+
+      </div>
+      <div class="post-content-main animate__animated  animate__fadeInUp">
+        <!-- top型目录 -->
+        
+        <h2 id="基本概念"><a href="#基本概念" class="headerlink" title="基本概念"></a>基本概念</h2><p>在Dots中也分为编辑模式下来编辑物体和运行模式下编辑物体。他们分别被称之为：<strong>Authoring</strong>模式与<strong>Runtime</strong>模式，由于我们大部分的时候都是用的是结构体类型，因此我们在很多地方都需要用到地址，而不是他的拷贝，所以Unity用RefRW和RefRO来帮我们封装了一层。在使用的时候也需要注意，有可能你获得的值只是个拷贝。</p>
+<h3 id="Authoring模式下创建物体"><a href="#Authoring模式下创建物体" class="headerlink" title="Authoring模式下创建物体"></a>Authoring模式下创建物体</h3><p>在Authoring模式下也就是编排模式中，我们想要编辑物体则需要创建一个<strong>SubScene</strong>，该场景用于将我们的将我们的<strong>GameObject</strong>转化为<strong>Entity</strong>。并给予各种Component。在该模式下，我们将编写的Component称之为<strong>Baker</strong>（一些自定义的数据，不包括方法）。将添加组件的行为称之为<strong>Baking</strong>。</p>
+<h3 id="Runtime模式下创建物体"><a href="#Runtime模式下创建物体" class="headerlink" title="Runtime模式下创建物体"></a>Runtime模式下创建物体</h3><h4 id="基础介绍"><a href="#基础介绍" class="headerlink" title="基础介绍"></a>基础介绍</h4><p>在运行模式下我们需要先创建一个<strong>World</strong>，World是一个Entity的集合，我们通过world下的<strong>EntityManager</strong>来管理里面的Entity。Entity在一个World中的id是唯一的，但在不同的world下可能会相同，即A和B两个world中都有一个id为1的entity。Entity只是一个id。他并没有数据也没有方法，我们可以通过Entity来索引到他所对应的数据，即ECS中的C部分。然后我们再通过System来对他们进行操控。<br>Runtime模式下下的代码大概如下（来源自视频）</p>
+<pre><code>var world = new World(&quot;Test&quot;);    //创建world
+var entityManager = world.EntityManager;//获得world中的manager
+Entity entity = entityManager.CreateEntity(); //创建一个Entity
+
+entityManager.AddComponent&lt;CubeGeneratorByScript&gt;(entity) //绑定Component
+var generator = entityManager.GetComponentData&lt;CubeGeneratorByScript&gt;(entity);//获得添加的Component副本。用于后面设置数据
+generator.cubeCount = CubeCount;
+entityManager.SetComponentData(entity,cubePrototype);
+
+//other----------
+
+//System中实例化
+var generator = SystemAPI.GetSingleton&lt;CubeGeneratorByScript&gt;();
+var cube =CollectionHelper.CreateNativeArray&lt;Enetity&gt;(generator.cubeCount,Allocator.Temp);
+state.entityManager.Instantiate(generator.cubeEntityProtoType,cubes);
+cubes.Dispose();
+</code></pre>
+<h4 id="常用方法"><a href="#常用方法" class="headerlink" title="常用方法"></a>常用方法</h4><p>因为我们是拥有一个默认的世界(Default World)，因此我们可以在System中直接通过该World的EntityMananger来创建物体。如下</p>
+<pre><code>var generator = SystemAPI.GetSingleton&lt;WaveCubeGenerateData&gt;();
+var cubes = CollectionHelper.CreateNativeArray&lt;Entity&gt;(4 * generator.halfCountY * generator.halfCountX, Allocator.Temp);
+state.EntityManager.Instantiate(generator.CubeProtoType, cubes);
+</code></pre>
+<p>首先声明一个空间来存放物体，然后通过Instantiate方法填充即可。<br>对于一个RefRW引用的变量，他的值，是在ValueRW变量下的。</p>
+<p>   &#x2F;&#x2F;RefRW<LocalTransform> transform<br>   transform.ValueRW.postion.y &#x3D; 1;</p>
+<h3 id="Chunk"><a href="#Chunk" class="headerlink" title="Chunk"></a>Chunk</h3><h2 id="Compnent"><a href="#Compnent" class="headerlink" title="Compnent"></a>Compnent</h2><p>根据内存类型来划分大约分为 <strong>非托管Compnent</strong>与<strong>托管Compnent</strong>.对于其他的划分的话还分为了很多的类型，具体可以去文档中查看，比如单例版本的Compnent，按照访问来划分的有按照Entity访问的，按Chunk访问的等等</p>
+<h3 id="非托管Compnent"><a href="#非托管Compnent" class="headerlink" title="非托管Compnent"></a>非托管Compnent</h3><p>用于存储一些常见的数据类型，具体的存储数据类型可以去给出的链接中查看，他可以存储<a target="_blank" rel="noopener" href="https://learn.microsoft.com/en-us/dotnet/framework/interop/blittable-and-non-blittable-types">Blittable</a>类型，一般来说，非托管类型他们的大小或者内存是不变的。</p>
+<h3 id="托管Compnent"><a href="#托管Compnent" class="headerlink" title="托管Compnent"></a>托管Compnent</h3><p>托管的Compnent可以存储任何数据，但缺点是无法通过Jobs进行访问。也无法用Brust编译，因此他与非托管Compnent相比效率较低。 </p>
+<p>对于功能性上划分的Component有很多，比如Tag Component，他虽然也是继承自IComponent，但是他一般不写任何数据，只在System中作为一个Tag使用，自然他也不会去占用内存</p>
+<h2 id="System"><a href="#System" class="headerlink" title="System"></a>System</h2><p>System的接口只要有两个：ISystem和SystemBase。</p>
+<p>ISystem的接口只有值类型的对象可以继承。否则会报错，他与Burst兼容，且比SystemBase更快。而SystemBase则要比ISystem慢一些，但他要比ISystem更加的方便,ISystem提供对非托管的内存的访问，而SystemBase提供了对托管内存的访问。</p>
+<p>对于System的使用，我们应该System 尽可能的不要定义数据，而是将数据组织成Compnoent。 在System更新的时候，尽可能的采用SystemState的GetEntityQuery，GetComponentTypeHanle&lt;&gt;等访问Chunk的component数组，而不是通过EntityManager等方法访问。</p>
+<p>在system中我们想要更改某个Entity的Component的值，有很多办法，比如可以现在查询时候指定他。或者通过Aspect来包装一个方法。<br>也可以通过**SystemAPI.GetComponentRW<T>(Entity e)**方法来获得组件，如果仅仅是只需要获得数据而不需更改的化则可以使用GetComponent方法</p>
+<h3 id="SystemGroup"><a href="#SystemGroup" class="headerlink" title="SystemGroup"></a>SystemGroup</h3><p>SystemGroup感觉像是让我们控制每一个System的更新顺序，我们可以打开System的窗口来查看所有的System的更新顺序。同时也可以使用特性<strong>UpdateBefore</strong>与<strong>UpdateAfter</strong>来控制我们的System的顺序。同时利用<strong>UodateInGroup</strong>来了将我们的System添加到指定的Group下。</p>
+<h2 id="遍历与查询"><a href="#遍历与查询" class="headerlink" title="遍历与查询"></a>遍历与查询</h2><h3 id="SystemAPI-Query"><a href="#SystemAPI-Query" class="headerlink" title="SystemAPI.Query"></a>SystemAPI.Query</h3><p>在一般的情况下我们使用**SystemAPI.Query&lt;&gt;**即可满足遍历需求。具体的用法如下</p>
+<pre><code>foreach (var (transform,speed) in SystemAPI.Query&lt;RefRW&lt;LocalTransform&gt;,RefRO&lt;RotationCube&gt;&gt;())
+    &#123;
+        transform.ValueRW = transform.ValueRO.RotateY(
+            speed.ValueRO.rotationSpeed * deltaTime
+        );
+    &#125;
+</code></pre>
+<p>SystemAPI.Query的参数是Entity上的Component，他们在该world中选出所有满足条件的Entity，比如上文中的就是挑选出含有LoaclTransform与RotationCube的Entity。另外他只能与foreach连着使用，无法将结果存入一个变量中在后面反复使用。</p>
+<h3 id="IJobEntity"><a href="#IJobEntity" class="headerlink" title="IJobEntity"></a>IJobEntity</h3><p>我们还可以通过继承自IJobEntity接口来实现查询物体，用法如下</p>
+<pre><code>[BurstCompile]
+public partial struct RotationCubeJob : IJobEntity
+&#123;
+    public float deltaTime;
+    public void Execute(ref LocalTransform transform,in RotationCube speed,in RotationRedCube red)
+    &#123;
+        transform = transform.RotateY(deltaTime * speed.rotationSpeed);
+    &#125;
+&#125;
+
+//xxxx
+
+public void OnUpdate(ref SystemState state)
+&#123;
+    var job = new RotationCubeJob() &#123; deltaTime = SystemAPI.Time.DeltaTime&#125;;
+    job.ScheduleParallel();
+&#125;
+</code></pre>
+<p>同时我们也可以在Execute的参数中来筛选出想要的物体，在上面的例子中便是我们会挑选出带有三个组件的物体。为了避免拷贝所带来的性能影响，我们在Execute的函数中的参数上会加上<strong>in</strong>关键字来避免消耗。</p>
+<h2 id="IAspect"><a href="#IAspect" class="headerlink" title="IAspect"></a>IAspect</h2><p>Dots中给我们提供了一个新的接口，它可以将我们的Component给进行一个更高级的封装，使其更符合我们oop的写法，用法如下</p>
+<pre><code>readonly partial struct RotationAndMoveAspects : IAspect
+&#123;
+    public readonly RefRW&lt;LocalTransform&gt; localTransform;
+    public readonly RefRO&lt;RotateAndMoveSpeed&gt; speed;
+    public void Move(double elapsedTime)
+    &#123;
+        localTransform.ValueRW.Position.y = (float)math.sin(elapsedTime * speed.ValueRO.speed);
+    &#125;
+    public void Rotate(float deltaTime) &#123; 
+        localTransform.ValueRW = localTransform.ValueRO.RotateY(speed.ValueRO.rotateSpeed * deltaTime);
+    &#125;
+    public void RotateAndMove(double elapsedTime,float deltaTime)
+    &#123;
+        localTransform.ValueRW.Position.y = (float)math.sin(elapsedTime * speed.ValueRO.speed);
+        localTransform.ValueRW = localTransform.ValueRO.RotateY(speed.ValueRO.rotateSpeed * deltaTime);
+    &#125;
+&#125;
+</code></pre>
+<p>我们可以在里面封装出自己想要的Component。其中在声明的时候readonly关键字是必须的，partial也是必须的。对于封装的数据必须要用RefRW或者RefRO引用起来。</p>
+<p>在SystemAPI.Query中我们也可以通过输入IAspect类型的变量来遍历出我们想要的实体。</p>
+<p>我们在该结构体内实现出自己想要的方法，然后在外面直接调用即可。</p>
+<pre><code>foreach (var aspect in SystemAPI.Query&lt;RotationAndMoveAspects&gt;())
+&#123;
+    //aspect.Move(elapsedTime);
+    //aspect.Rotate(deltaTime);
+    aspect.RotateAndMove(elapsedTime, deltaTime);
+&#125;
+</code></pre>
+<h2 id="Entity的随机访问"><a href="#Entity的随机访问" class="headerlink" title="Entity的随机访问"></a>Entity的随机访问</h2><h2 id="EntityCommandBuffer"><a href="#EntityCommandBuffer" class="headerlink" title="EntityCommandBuffer"></a>EntityCommandBuffer</h2><p>EntityCommandBuffer类似于一个指令链。由于在Job中无法直接创建与销毁Entity。因此我们就需要将命令记录下来，在同步到主线程的时候来执行所记录下的指令。</p>
+<p>因此EntityCommandBuffer 在 Job中承担的是EntityManager的工作。他们的方法也有很多相同。</p>
+<p>EntityCommandBuffer的基础使用方法是我们在主线程，也就是System中声明一个EntityCommandBuffer变量。然后将其赋值给我们的Job。</p>
+<pre><code>public void OnUpdate(ref SystemState state)
+&#123;
+    EntityCommandBuffer ecb = new EntityCommandBuffer(Allcator.TempJob);
+    // xxxx
+    var job = new Job
+    &#123;
+        // xxx
+        ecb = ecb,
+    &#125;
+
+    state.Dependency = job.ScheduleParllel(state.Dependecy);
+    //state.Dependency = job.Schedule(cubes.length,state.Dependency);//这里分别是使用ScheduleParllel和使用Schedule的区别
+    state.Dependency.Comlete();//为了等待所有的job都执行完毕，我们需要让主线程等待
+    ecb.playback(state.EntityManager);
+    Cubes.Dispose();
+    ecb.Dispose();
+&#125;
+</code></pre>
+<p>一个简单的ecb的使用也就大概如上，我们ecb的实例化时候需要指定内存为TempJob。在Job中来负责执行一些我们像执行的命令，比如创建Entity和删除Entity。如下</p>
+<pre><code>//创建Entity
+public struct GenerateCubesJob : IJobFor
+&#123;
+    [ReadOnly]
+    public Entity cubeProtoType;
+    public NativeArray&lt;Entity&gt; cubes;
+    public EntityCommandBuffer ecb;
+    [NativeDisableUnsafePtrRestriction]
+    public RefRW&lt;RandomSingleton&gt; random;
+    public void Execute(int index)
+    &#123;
+        cubes[index] = ecb.Instantiate(cubeProtoType);
+        ecb.AddComponent(cubes[index],new   RotateAndMoveSpeed
+        &#123;
+            rotateSpeed = math.radians(60),
+        speed = 5f,
+        &#125;);
+        float2 targetPos2D = random.ValueRW.random. NextFloat2(new float2(-15, -15), new float2(15, 15));
+        ecb.AddComponent(cubes[index], new RandomTarget()
+        &#123;
+            postion = new float3(targetPos2D.x, 0,  targetPos2D.y)
+        &#125;);
+    &#125;
+&#125;
+//删除Entity
+ecbp.DestroyEntity(chunkIndex, entity);
+</code></pre>
+<p><del>由于job的执行顺序是不确定的。但在我们看来某个任务他的执行顺序是不会因为先后执行顺序导致错误。比如填充数组。这时候可以利用特性<strong>NativeDisableUnsafePtrRestriction</strong>来放弃编辑器检查</del>(错误言论，但是不知道他干嘛用的，所以暂时先不删除了)，</p>
+<p>在创建的Job中。由于我们还没有任何的Entity，所以他不能继承自IJobEntity。应该继承IJobFor。由于在job中我们并没有真正的执行命令，而是记录下了命令，因此在创建中的时候index也仅仅是在数组Cubes的一个占位符，并没有与Entity连接起来。因此我们只能在Job中来创建Entity和AddComponent。而不是去SetComponent。</p>
+<p>在删除的例子中，ChunkIndex是一个用<strong>ChunkIndexInQuery</strong>特性修饰的变量，它可以让我们获得该Chunk的索引，以便于我们来操控该Entity。</p>
+<pre><code>//IJobEntity的函数声明
+void Execute([ChunkIndexInQuery]int chunkIndex,Entity entity,ref LocalTransform transform,in RandomTarget target,in RotateAndMoveSpeed speed)
+</code></pre>
+<p>Scheduled的执行是一个工作线程中来执行。不算真正的并行化执行任务，因此我们可以使用SchedulePallel来执行Job。在此时的时候我们便不能使用ecb了。而是使用<strong>EntityCommandBuffer.ParallerWriter</strong>类型，该类型可以通过一个ecb对象调用**AsParallerWriter()**方法来获得</p>
+<pre><code>EntityCommandBuffer.ParallelWriter ecbp =ecb.AsParallelWriter();
+//具体的调用 
+state.Dependency = job.ScheduleParallel(cubes.Length, 1,state.Dependency);
+</code></pre>
+<h3 id="ecb的一些注意内容"><a href="#ecb的一些注意内容" class="headerlink" title="ecb的一些注意内容"></a>ecb的一些注意内容</h3><p>强烈不建议在多个Job中共享使用一个ecb。最好为每一个Job创建和使用一个ecb。</p>
+<p>如果要多次调用ecb的Playback方法，这可能会导致异常，如果真的要调用可以在创建ecb的时候指定MultiPlayBack选项</p>
+<pre><code>EntityCommandBuffer ecb=new EntityCommandBuffer(Allocator.TempJob,PlaybackPolicy.MultiPlayback);
+</code></pre>
+<p>我们可以通过继承EntityCommandBufferSystem来实现一个ECBSystem。</p>
+<h2 id="相关链接"><a href="#相关链接" class="headerlink" title="相关链接"></a>相关链接</h2><p><a target="_blank" rel="noopener" href="https://github.com/Unity-Technologies/EntityComponentSystemSamples">Unity官方示例</a></p>
+<p><a target="_blank" rel="noopener" href="https://www.bilibili.com/video/BV1b84y1r7vK/?spm_id_from=333.788&vd_source=4cb2ec33454a41bb09e521e44c931372">B站视频教程</a></p>
+<p><a target="_blank" rel="noopener" href="https://docs.unity3d.com/Packages/com.unity.entities@1.0/manual/index.html">Dots1.0相关API</a></p>
+<p><a target="_blank" rel="noopener" href="https://github.com/lwwhb/RoadToDotsTutorials/tree/main/Assets/EntitiesTutorials">B站教程Git仓库</a></p>
+
+        <!-- 分类文章 -->
+        
+      </div>
+      <div class="post-content-inner-space">
+        
+          <div class="space-toc-main animate__animated  animate__fadeInUp">
+            <ol class="space-toc"><li class="space-toc-item space-toc-level-2"><a class="space-toc-link" href="#%E5%9F%BA%E6%9C%AC%E6%A6%82%E5%BF%B5"><span class="space-toc-text">基本概念</span></a></li><li class="space-toc-item space-toc-level-2"><a class="space-toc-link" href="#Compnent"><span class="space-toc-text">Compnent</span></a></li><li class="space-toc-item space-toc-level-2"><a class="space-toc-link" href="#System"><span class="space-toc-text">System</span></a></li><li class="space-toc-item space-toc-level-2"><a class="space-toc-link" href="#%E9%81%8D%E5%8E%86%E4%B8%8E%E6%9F%A5%E8%AF%A2"><span class="space-toc-text">遍历与查询</span></a></li><li class="space-toc-item space-toc-level-2"><a class="space-toc-link" href="#IAspect"><span class="space-toc-text">IAspect</span></a></li><li class="space-toc-item space-toc-level-2"><a class="space-toc-link" href="#Entity%E7%9A%84%E9%9A%8F%E6%9C%BA%E8%AE%BF%E9%97%AE"><span class="space-toc-text">Entity的随机访问</span></a></li><li class="space-toc-item space-toc-level-2"><a class="space-toc-link" href="#EntityCommandBuffer"><span class="space-toc-text">EntityCommandBuffer</span></a></li><li class="space-toc-item space-toc-level-2"><a class="space-toc-link" href="#%E7%9B%B8%E5%85%B3%E9%93%BE%E6%8E%A5"><span class="space-toc-text">相关链接</span></a></li></ol>
+           </div>
+        
+      </div>
+   </div>
+    <!-- 评论 -->
+    
+  </div>
+</article>
+  </div>
+</div>
+
+
+
+<!-- 如果是home模式的话，不在首页就显示footer，如果不是home模式的话 所有都显示footer -->
+
+  <div class="footer-outer animate__animated  animate__fadeInUp">
+    <div class="footer-inner">
+    <div class="footer-text">
+    <p>My Blog</p>
+
+    </div>
+    <div class="footer-contact">
+    <ul class="footer-ul">
+        
+        <li class="footer-li">
+            <a href="https://github.com/shuangrenxu123/GameCode" target="_blank">
+                <i class="ri-github-line"></i>
+            </a>
+        </li>
+        
+        <li class="footer-li">
+            <a href="mailto:1919802366@qq.com" target="_blank">
+                <i class="ri-mail-line"></i>
+            </a>
+        </li>
+        
+    </ul>
+    </div>
+    </div>
+</div>
+
+
+
+
+
+
+<script src="/js/white.js"></script>
+
+
+
+    
+      
+<script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@9.18.1/build/highlight.min.js"></script>
+
+      <script>hljs.initHighlightingOnLoad();</script>
+    
+
+</body>
+</html>

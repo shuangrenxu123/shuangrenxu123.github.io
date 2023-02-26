@@ -134,6 +134,7 @@ BTDeocrator:修饰器节点，只允许有一个子节点。用于一些对节�
 </ol>
 <p>2.执行节点：用于执行某些行为，行为有可能是持续性的，因为他可以返回成功（success），失败（failure），运行中（running）这三种状态给他的父节点。</p>
 <h2 id="做法："><a href="#做法：" class="headerlink" title="做法："></a>做法：</h2><p>从根节点开始，挨个遍历，最终执行叶子节点。他通过控制节点来判断怎么执行接下来的子节点，然后根据自己的需求来根据返回的结果来进行后续的处理，需要注意的是行为树是每一帧都会从根节点来重新执行检测一遍行为树。因此在树的深度较深的时候对性能的影响是比较大的。</p>
+<p><a target="_blank" rel="noopener" href="https://www.cnblogs.com/zhanlang96/p/4793511.html">https://www.cnblogs.com/zhanlang96/p/4793511.html</a></p>
 
         <!-- 分类文章 -->
         
