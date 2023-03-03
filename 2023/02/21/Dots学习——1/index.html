@@ -146,7 +146,9 @@ state.EntityManager.Instantiate(generator.CubeProtoType, cubes);
 </code></pre>
 <p>首先声明一个空间来存放物体，然后通过Instantiate方法填充即可。<br>对于一个RefRW引用的变量，他的值，是在ValueRW变量下的。</p>
 <p>   &#x2F;&#x2F;RefRW<LocalTransform> transform<br>   transform.ValueRW.postion.y &#x3D; 1;</p>
-<h3 id="Chunk"><a href="#Chunk" class="headerlink" title="Chunk"></a>Chunk</h3><h2 id="Compnent"><a href="#Compnent" class="headerlink" title="Compnent"></a>Compnent</h2><p>根据内存类型来划分大约分为 <strong>非托管Compnent</strong>与<strong>托管Compnent</strong>.对于其他的划分的话还分为了很多的类型，具体可以去文档中查看，比如单例版本的Compnent，按照访问来划分的有按照Entity访问的，按Chunk访问的等等</p>
+<h3 id="Archetype与Chunk"><a href="#Archetype与Chunk" class="headerlink" title="Archetype与Chunk"></a>Archetype与Chunk</h3><p>Archetype为一个相同组件的原型标识。假设EntityA与EntityB都是具有Postion和Rotation两个组件，那么他们就是同一种Archetype。而EntityC只有一个Position。他就属于另一种Archetype。而我们通过这种模式，在遍历的时候也可以更好的获得相应的原型</p>
+<p>在每个Archetype所标记的内存会被分为固定大小且连续的非托管内存块。这一个内存块被称之为Chunk。默认下每个Chunk大小为16kb，每个Chunk中包含了共享原型的Component数组以及Entity的数组，当数组没有填充满的情况下，也需要留空。以确保内存对齐。</p>
+<h2 id="Compnent"><a href="#Compnent" class="headerlink" title="Compnent"></a>Compnent</h2><p>根据内存类型来划分大约分为 <strong>非托管Compnent</strong>与<strong>托管Compnent</strong>.对于其他的划分的话还分为了很多的类型，具体可以去文档中查看，比如单例版本的Compnent，按照访问来划分的有按照Entity访问的，按Chunk访问的等等</p>
 <h3 id="非托管Compnent"><a href="#非托管Compnent" class="headerlink" title="非托管Compnent"></a>非托管Compnent</h3><p>用于存储一些常见的数据类型，具体的存储数据类型可以去给出的链接中查看，他可以存储<a target="_blank" rel="noopener" href="https://learn.microsoft.com/en-us/dotnet/framework/interop/blittable-and-non-blittable-types">Blittable</a>类型，一般来说，非托管类型他们的大小或者内存是不变的。</p>
 <h3 id="托管Compnent"><a href="#托管Compnent" class="headerlink" title="托管Compnent"></a>托管Compnent</h3><p>托管的Compnent可以存储任何数据，但缺点是无法通过Jobs进行访问。也无法用Brust编译，因此他与非托管Compnent相比效率较低。 </p>
 <p>对于功能性上划分的Component有很多，比如Tag Component，他虽然也是继承自IComponent，但是他一般不写任何数据，只在System中作为一个Tag使用，自然他也不会去占用内存</p>
@@ -155,7 +157,16 @@ state.EntityManager.Instantiate(generator.CubeProtoType, cubes);
 <p>对于System的使用，我们应该System 尽可能的不要定义数据，而是将数据组织成Compnoent。 在System更新的时候，尽可能的采用SystemState的GetEntityQuery，GetComponentTypeHanle&lt;&gt;等访问Chunk的component数组，而不是通过EntityManager等方法访问。</p>
 <p>在system中我们想要更改某个Entity的Component的值，有很多办法，比如可以现在查询时候指定他。或者通过Aspect来包装一个方法。<br>也可以通过**SystemAPI.GetComponentRW<T>(Entity e)**方法来获得组件，如果仅仅是只需要获得数据而不需更改的化则可以使用GetComponent方法</p>
 <h3 id="SystemGroup"><a href="#SystemGroup" class="headerlink" title="SystemGroup"></a>SystemGroup</h3><p>SystemGroup感觉像是让我们控制每一个System的更新顺序，我们可以打开System的窗口来查看所有的System的更新顺序。同时也可以使用特性<strong>UpdateBefore</strong>与<strong>UpdateAfter</strong>来控制我们的System的顺序。同时利用<strong>UodateInGroup</strong>来了将我们的System添加到指定的Group下。</p>
-<h2 id="遍历与查询"><a href="#遍历与查询" class="headerlink" title="遍历与查询"></a>遍历与查询</h2><h3 id="SystemAPI-Query"><a href="#SystemAPI-Query" class="headerlink" title="SystemAPI.Query"></a>SystemAPI.Query</h3><p>在一般的情况下我们使用**SystemAPI.Query&lt;&gt;**即可满足遍历需求。具体的用法如下</p>
+<h2 id="遍历与查询"><a href="#遍历与查询" class="headerlink" title="遍历与查询"></a>遍历与查询</h2><p>有的时候我们可能会想缓存下一个Query，可以利用EntityQuery来声明一个变量。并声明一个EntityQueryBuilder实例。并用SysteState的GetEntityQuery方法填充</p>
+<pre><code>EntityQuery q;
+var query = new EntityQueryBuilder(Allocator.Temp).WithAll&lt;RotateSpeed,LocalTransform&gt;();
+q = state.GetEntityQuery(query);
+</code></pre>
+<p>如果一个EntityQuery包含了一个共享组件，还可以使用方法AddSharedComponentFitter方法来进行组件剔除。（普通的查询应该也可以，但是API机翻看不懂。<br>然后我们可以通过</p>
+<pre><code>query.ToEntityArray(Allocator.Temp);
+</code></pre>
+<p>来获得一个Entity的数组以供后面使用<br><a target="_blank" rel="noopener" href="https://docs.unity3d.com/Packages/com.unity.entities@1.0/manual/systems-entityquery-create.html">官方实例</a></p>
+<h3 id="SystemAPI-Query"><a href="#SystemAPI-Query" class="headerlink" title="SystemAPI.Query"></a>SystemAPI.Query</h3><p>在一般的情况下我们使用**SystemAPI.Query&lt;&gt;**即可满足遍历需求。具体的用法如下</p>
 <pre><code>foreach (var (transform,speed) in SystemAPI.Query&lt;RefRW&lt;LocalTransform&gt;,RefRO&lt;RotationCube&gt;&gt;())
     &#123;
         transform.ValueRW = transform.ValueRO.RotateY(
@@ -183,7 +194,10 @@ public void OnUpdate(ref SystemState state)
     job.ScheduleParallel();
 &#125;
 </code></pre>
-<p>同时我们也可以在Execute的参数中来筛选出想要的物体，在上面的例子中便是我们会挑选出带有三个组件的物体。为了避免拷贝所带来的性能影响，我们在Execute的函数中的参数上会加上<strong>in</strong>关键字来避免消耗。</p>
+<p>同时我们也可以在Execute的参数中来筛选出想要的物体，在上面的例子中便是我们会挑选出带有三个组件的物体。为了避免拷贝所带来的性能影响，我们在Execute的函数中的参数上会加上<strong>in</strong>关键字来避免消耗。我们还可以通过Entity参数来获得该entity</p>
+<pre><code>public void Execute(Entity entity);
+</code></pre>
+<h3 id="IJobChunk"><a href="#IJobChunk" class="headerlink" title="IJobChunk"></a>IJobChunk</h3><p>待补充</p>
 <h2 id="IAspect"><a href="#IAspect" class="headerlink" title="IAspect"></a>IAspect</h2><p>Dots中给我们提供了一个新的接口，它可以将我们的Component给进行一个更高级的封装，使其更符合我们oop的写法，用法如下</p>
 <pre><code>readonly partial struct RotationAndMoveAspects : IAspect
 &#123;
@@ -213,7 +227,13 @@ public void OnUpdate(ref SystemState state)
     aspect.RotateAndMove(elapsedTime, deltaTime);
 &#125;
 </code></pre>
-<h2 id="Entity的随机访问"><a href="#Entity的随机访问" class="headerlink" title="Entity的随机访问"></a>Entity的随机访问</h2><h2 id="EntityCommandBuffer"><a href="#EntityCommandBuffer" class="headerlink" title="EntityCommandBuffer"></a>EntityCommandBuffer</h2><p>EntityCommandBuffer类似于一个指令链。由于在Job中无法直接创建与销毁Entity。因此我们就需要将命令记录下来，在同步到主线程的时候来执行所记录下的指令。</p>
+<h2 id="Entity的随机访问"><a href="#Entity的随机访问" class="headerlink" title="Entity的随机访问"></a>Entity的随机访问</h2><p>Entity的随机访问是 在任意的时刻通过Entity对象来访问到他的组件。通过EntityManager可以获得，但是EntityManger无法在Jobs中使用</p>
+<p>我们可以在Job中声明一个ComponentLookup变量，然后在创建Entity时候填充他，然后我们可以通过Entity作为key来获得他的物体。</p>
+<pre><code>ComponentLookup&lt;RotateAndMoveSpeed&gt; speed;
+speed = state.GetComponentLookup&lt;RotateAndMoveSpeed&gt;(),
+</code></pre>
+<p>具体实例待补充</p>
+<h2 id="EntityCommandBuffer"><a href="#EntityCommandBuffer" class="headerlink" title="EntityCommandBuffer"></a>EntityCommandBuffer</h2><p>EntityCommandBuffer类似于一个指令链。由于在Job中无法直接创建与销毁Entity。因此我们就需要将命令记录下来，在同步到主线程的时候来执行所记录下的指令。</p>
 <p>因此EntityCommandBuffer 在 Job中承担的是EntityManager的工作。他们的方法也有很多相同。</p>
 <p>EntityCommandBuffer的基础使用方法是我们在主线程，也就是System中声明一个EntityCommandBuffer变量。然后将其赋值给我们的Job。</p>
 <pre><code>public void OnUpdate(ref SystemState state)
@@ -264,7 +284,7 @@ ecbp.DestroyEntity(chunkIndex, entity);
 </code></pre>
 <p><del>由于job的执行顺序是不确定的。但在我们看来某个任务他的执行顺序是不会因为先后执行顺序导致错误。比如填充数组。这时候可以利用特性<strong>NativeDisableUnsafePtrRestriction</strong>来放弃编辑器检查</del>(错误言论，但是不知道他干嘛用的，所以暂时先不删除了)，</p>
 <p>在创建的Job中。由于我们还没有任何的Entity，所以他不能继承自IJobEntity。应该继承IJobFor。由于在job中我们并没有真正的执行命令，而是记录下了命令，因此在创建中的时候index也仅仅是在数组Cubes的一个占位符，并没有与Entity连接起来。因此我们只能在Job中来创建Entity和AddComponent。而不是去SetComponent。</p>
-<p>在删除的例子中，ChunkIndex是一个用<strong>ChunkIndexInQuery</strong>特性修饰的变量，它可以让我们获得该Chunk的索引，以便于我们来操控该Entity。</p>
+<p>在删除的例子中，ChunkIndex是一个用<strong>ChunkIndexInQuery</strong>特性修饰的变量，它可以让我们获得该Entity所在的Chunk的索引，以便于我们来并行化的操控Entity，而在普通的ECB中则不需要提供该参数</p>
 <pre><code>//IJobEntity的函数声明
 void Execute([ChunkIndexInQuery]int chunkIndex,Entity entity,ref LocalTransform transform,in RandomTarget target,in RotateAndMoveSpeed speed)
 </code></pre>
@@ -278,6 +298,45 @@ state.Dependency = job.ScheduleParallel(cubes.Length, 1,state.Dependency);
 <pre><code>EntityCommandBuffer ecb=new EntityCommandBuffer(Allocator.TempJob,PlaybackPolicy.MultiPlayback);
 </code></pre>
 <p>我们可以通过继承EntityCommandBufferSystem来实现一个ECBSystem。</p>
+<h2 id="DynamicBufferComponent"><a href="#DynamicBufferComponent" class="headerlink" title="DynamicBufferComponent"></a>DynamicBufferComponent</h2><p>DynamicBufferComponent可以看成一个动态大小的数组，我们将自己想要的数据继承自<strong>IBufferElementData</strong>，然后在Bake中通过**AddBuffer<T>()**方法来实例化一个数组。</p>
+<pre><code>[InternalBufferCapacity(8)]
+struct WayPoint : IBufferElementData
+&#123;
+    public float3 point;
+&#125;
+//xxx
+DynamicBuffer&lt;WayPoint&gt; wayPoints = AddBuffer&lt;WayPoint&gt;();
+</code></pre>
+<p>一个DBC的容量默认为128字节，而一个DBC的默认容量为8，也就是当我们的元素一个字节大小的时候，我们一个DBC的内存就是8字节。这么算下来那我们一个element的默认大小就是 <strong>128 &#x2F; 8 &#x3D; 16</strong>，刚好是一个float4的类型，我们还可以通过<strong>InternalBufferCapacity</strong>特性来更改默认大小，来调高我们的紧凑型。当发生了Structural Change的时候可能会破坏DBC，这个时候我们需要重新调用GetBuffer来获取DynamicBuffer。</p>
+<p>一个DBC默认是在一个Chunk中的，当他其中的容量超过了的时候，他会被移出该Chunk。</p>
+<h3 id="普通使用"><a href="#普通使用" class="headerlink" title="普通使用"></a>普通使用</h3><p>在使用上我们可以通过Entity.Manager.GetBuffer<T>来获得某个DCB，然后就可以像访问数组一样来访问想要的元素了，其中他可以像数组一样选择位置插入和直接添加到结尾。</p>
+<h3 id="在Job中使用DBC"><a href="#在Job中使用DBC" class="headerlink" title="在Job中使用DBC"></a>在Job中使用DBC</h3><h3 id="ECB中使用DBC"><a href="#ECB中使用DBC" class="headerlink" title="ECB中使用DBC"></a>ECB中使用DBC</h3><p>在ECB中我们可以通过类似**Addbuffer<T>|AppendToBuffer<T>(Entity,T)|SetBuffer<T>**等方法来获得DynamicBuffer或向其中添加内容。</p>
+<h2 id="Enableable-Componet"><a href="#Enableable-Componet" class="headerlink" title="Enableable Componet"></a>Enableable Componet</h2><p>Eneableable Component是一个可以开关的组件类型。它允许我们将一个组件关闭，从而达到在查询中剔除的效果，当关闭该Component以后，查询的时候会将其视为没有组件的情况。这样我们就可以避免大量Addcomponent或RemoveComponent所造成的Structural Change的情况，利用Enableable Component来提到Tag Component可以减少Archetype的数量，更好的利用内存。</p>
+<p>当我们对该实体进行组件操作的时候与其他的组件一样，该获得获得该设置设置</p>
+<p>Enableable Component只能使用在IComponentData或IBufferElement上。在继承上述两种接口的时候，在继承实现IEnableableComponent接口</p>
+<pre><code>struct data :IComponentData,IEnableableComponent
+</code></pre>
+<h3 id="在Job中的使用"><a href="#在Job中的使用" class="headerlink" title="在Job中的使用"></a>在Job中的使用</h3><p>在Job中关闭和启用组件是不会对组件的值造成任何影响的，因此我们可以在Job中放心的关闭和开启，当一个Job拥有写权限时候，应该避免在另一个job中来启用或关闭该Component。</p>
+<h2 id="SharedComponent"><a href="#SharedComponent" class="headerlink" title="SharedComponent"></a>SharedComponent</h2><p>共享组件，类似于原型模式，属于是我们多个Entity他们共享一个组件，SharedComponent不存在于chunk中，而是存在于其他的内存块中，而每一个Chunk块中则存储了该ShadredComponent的句柄，</p>
+<p>当我们更改了一个组件的共享组件的值以后，他会先寻找是否有chunk块存储的是该值，如果有便将该Entity移动到该Chunk块中，如果没有则会移动到一个新的Chunk块中。并引用一个新值句柄。无论如何，只要改动了SharedComponent的值，便会造成Structual Change。因此我们要尽可能的避免更改其值，同时也应避免大量有独特值的共享组件，因为这样会导致有很多利用率不高的Chunk存在。</p>
+<p>还应该避免多个共享组件类型组合，因为会造成多个Archetype类型，导致碎片化</p>
+<h3 id="使用方法"><a href="#使用方法" class="headerlink" title="使用方法"></a>使用方法</h3><p>在使用上我们需要根据数据的类型划分为非托管类型与托管类型。非托管与托管类型，他们分开存储。</p>
+<h4 id="非托管类型"><a href="#非托管类型" class="headerlink" title="非托管类型"></a>非托管类型</h4><p>让我们的Component继承字ISharedComponentData接口即可。</p>
+<pre><code>public struct CubeSharedComponentData : ISharedComponentData
+&#123;
+    public float rotateSpeed;
+    public float moveSpeed;
+&#125;
+</code></pre>
+<p>在添加组件的时候不再能使用AddComponent，而是使用AddSharedComponent</p>
+<pre><code>public struct CubeSharedComponentData : ISharedComponentData
+&#123;
+    public float rotateSpeed;
+    public float moveSpeed;
+&#125;
+</code></pre>
+<h4 id="托管类型"><a href="#托管类型" class="headerlink" title="托管类型"></a>托管类型</h4><p>待补充</p>
+<h2 id="Blob-Asset"><a href="#Blob-Asset" class="headerlink" title="Blob Asset"></a>Blob Asset</h2><p>待补充</p>
 <h2 id="相关链接"><a href="#相关链接" class="headerlink" title="相关链接"></a>相关链接</h2><p><a target="_blank" rel="noopener" href="https://github.com/Unity-Technologies/EntityComponentSystemSamples">Unity官方示例</a></p>
 <p><a target="_blank" rel="noopener" href="https://www.bilibili.com/video/BV1b84y1r7vK/?spm_id_from=333.788&vd_source=4cb2ec33454a41bb09e521e44c931372">B站视频教程</a></p>
 <p><a target="_blank" rel="noopener" href="https://docs.unity3d.com/Packages/com.unity.entities@1.0/manual/index.html">Dots1.0相关API</a></p>
@@ -289,7 +348,7 @@ state.Dependency = job.ScheduleParallel(cubes.Length, 1,state.Dependency);
       <div class="post-content-inner-space">
         
           <div class="space-toc-main animate__animated  animate__fadeInUp">
-            <ol class="space-toc"><li class="space-toc-item space-toc-level-2"><a class="space-toc-link" href="#%E5%9F%BA%E6%9C%AC%E6%A6%82%E5%BF%B5"><span class="space-toc-text">基本概念</span></a></li><li class="space-toc-item space-toc-level-2"><a class="space-toc-link" href="#Compnent"><span class="space-toc-text">Compnent</span></a></li><li class="space-toc-item space-toc-level-2"><a class="space-toc-link" href="#System"><span class="space-toc-text">System</span></a></li><li class="space-toc-item space-toc-level-2"><a class="space-toc-link" href="#%E9%81%8D%E5%8E%86%E4%B8%8E%E6%9F%A5%E8%AF%A2"><span class="space-toc-text">遍历与查询</span></a></li><li class="space-toc-item space-toc-level-2"><a class="space-toc-link" href="#IAspect"><span class="space-toc-text">IAspect</span></a></li><li class="space-toc-item space-toc-level-2"><a class="space-toc-link" href="#Entity%E7%9A%84%E9%9A%8F%E6%9C%BA%E8%AE%BF%E9%97%AE"><span class="space-toc-text">Entity的随机访问</span></a></li><li class="space-toc-item space-toc-level-2"><a class="space-toc-link" href="#EntityCommandBuffer"><span class="space-toc-text">EntityCommandBuffer</span></a></li><li class="space-toc-item space-toc-level-2"><a class="space-toc-link" href="#%E7%9B%B8%E5%85%B3%E9%93%BE%E6%8E%A5"><span class="space-toc-text">相关链接</span></a></li></ol>
+            <ol class="space-toc"><li class="space-toc-item space-toc-level-2"><a class="space-toc-link" href="#%E5%9F%BA%E6%9C%AC%E6%A6%82%E5%BF%B5"><span class="space-toc-text">基本概念</span></a></li><li class="space-toc-item space-toc-level-2"><a class="space-toc-link" href="#Compnent"><span class="space-toc-text">Compnent</span></a></li><li class="space-toc-item space-toc-level-2"><a class="space-toc-link" href="#System"><span class="space-toc-text">System</span></a></li><li class="space-toc-item space-toc-level-2"><a class="space-toc-link" href="#%E9%81%8D%E5%8E%86%E4%B8%8E%E6%9F%A5%E8%AF%A2"><span class="space-toc-text">遍历与查询</span></a></li><li class="space-toc-item space-toc-level-2"><a class="space-toc-link" href="#IAspect"><span class="space-toc-text">IAspect</span></a></li><li class="space-toc-item space-toc-level-2"><a class="space-toc-link" href="#Entity%E7%9A%84%E9%9A%8F%E6%9C%BA%E8%AE%BF%E9%97%AE"><span class="space-toc-text">Entity的随机访问</span></a></li><li class="space-toc-item space-toc-level-2"><a class="space-toc-link" href="#EntityCommandBuffer"><span class="space-toc-text">EntityCommandBuffer</span></a></li><li class="space-toc-item space-toc-level-2"><a class="space-toc-link" href="#DynamicBufferComponent"><span class="space-toc-text">DynamicBufferComponent</span></a></li><li class="space-toc-item space-toc-level-2"><a class="space-toc-link" href="#Enableable-Componet"><span class="space-toc-text">Enableable Componet</span></a></li><li class="space-toc-item space-toc-level-2"><a class="space-toc-link" href="#SharedComponent"><span class="space-toc-text">SharedComponent</span></a></li><li class="space-toc-item space-toc-level-2"><a class="space-toc-link" href="#Blob-Asset"><span class="space-toc-text">Blob Asset</span></a></li><li class="space-toc-item space-toc-level-2"><a class="space-toc-link" href="#%E7%9B%B8%E5%85%B3%E9%93%BE%E6%8E%A5"><span class="space-toc-text">相关链接</span></a></li></ol>
            </div>
         
       </div>
