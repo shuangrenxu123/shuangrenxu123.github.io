@@ -148,7 +148,7 @@ state.EntityManager.Instantiate(generator.CubeProtoType, cubes);
 <p>   &#x2F;&#x2F;RefRW<LocalTransform> transform<br>   transform.ValueRW.postion.y &#x3D; 1;</p>
 <h3 id="Archetype与Chunk"><a href="#Archetype与Chunk" class="headerlink" title="Archetype与Chunk"></a>Archetype与Chunk</h3><p>Archetype为一个相同组件的原型标识。假设EntityA与EntityB都是具有Postion和Rotation两个组件，那么他们就是同一种Archetype。而EntityC只有一个Position。他就属于另一种Archetype。而我们通过这种模式，在遍历的时候也可以更好的获得相应的原型</p>
 <p>在每个Archetype所标记的内存会被分为固定大小且连续的非托管内存块。这一个内存块被称之为Chunk。默认下每个Chunk大小为16kb，每个Chunk中包含了共享原型的Component数组以及Entity的数组，当数组没有填充满的情况下，也需要留空。以确保内存对齐。</p>
-<h2 id="Compnent"><a href="#Compnent" class="headerlink" title="Compnent"></a>Compnent</h2><p>根据内存类型来划分大约分为 <strong>非托管Compnent</strong>与<strong>托管Compnent</strong>.对于其他的划分的话还分为了很多的类型，具体可以去文档中查看，比如单例版本的Compnent，按照访问来划分的有按照Entity访问的，按Chunk访问的等等</p>
+<h2 id="Compnent"><a href="#Compnent" class="headerlink" title="Compnent"></a>Compnent</h2><p>根据内存类型来划分大约分为 <strong>非托管Compnent</strong>与<strong>托管Compnent</strong>.对于其他的划分的话还分为了很多的类型，具体可以去文档中查看，比如单例版本的Compnent，按照访问来划分的有按照Entity访问的，按Chunk访问的等等,我们会在后面来介绍这些Component</p>
 <h3 id="非托管Compnent"><a href="#非托管Compnent" class="headerlink" title="非托管Compnent"></a>非托管Compnent</h3><p>用于存储一些常见的数据类型，具体的存储数据类型可以去给出的链接中查看，他可以存储<a target="_blank" rel="noopener" href="https://learn.microsoft.com/en-us/dotnet/framework/interop/blittable-and-non-blittable-types">Blittable</a>类型，一般来说，非托管类型他们的大小或者内存是不变的。</p>
 <h3 id="托管Compnent"><a href="#托管Compnent" class="headerlink" title="托管Compnent"></a>托管Compnent</h3><p>托管的Compnent可以存储任何数据，但缺点是无法通过Jobs进行访问。也无法用Brust编译，因此他与非托管Compnent相比效率较低。 </p>
 <p>对于功能性上划分的Component有很多，比如Tag Component，他虽然也是继承自IComponent，但是他一般不写任何数据，只在System中作为一个Tag使用，自然他也不会去占用内存</p>
@@ -341,6 +341,7 @@ DynamicBuffer&lt;WayPoint&gt; wayPoints = AddBuffer&lt;WayPoint&gt;();
 <p><a target="_blank" rel="noopener" href="https://www.bilibili.com/video/BV1b84y1r7vK/?spm_id_from=333.788&vd_source=4cb2ec33454a41bb09e521e44c931372">B站视频教程</a></p>
 <p><a target="_blank" rel="noopener" href="https://docs.unity3d.com/Packages/com.unity.entities@1.0/manual/index.html">Dots1.0相关API</a></p>
 <p><a target="_blank" rel="noopener" href="https://github.com/lwwhb/RoadToDotsTutorials/tree/main/Assets/EntitiesTutorials">B站教程Git仓库</a></p>
+<p><a target="_blank" rel="noopener" href="https://github.com/lwwhb/DOTS-training-samples/tree/master">以前版本的ECS的例子</a></p>
 
         <!-- 分类文章 -->
         

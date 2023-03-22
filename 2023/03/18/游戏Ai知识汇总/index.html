@@ -1,0 +1,264 @@
+
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>  游戏Ai知识汇总 |    DickCat.</title>
+  <meta name="description" content="A minimalist theme for hexo.">
+  <!-- 标签页图标 -->
+  
+
+  <!-- 图标库 -->
+  <link href="https://cdn.jsdelivr.net/npm/remixicon@2.2.0/fonts/remixicon.css" rel="stylesheet">
+  <!-- 动画库 -->
+  
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/fushaolei/cdn-white@1.0/css/animate.css"/>
+  
+  <!-- css文件 -->
+  
+<link rel="stylesheet" href="/css/white.css">
+
+  <!-- 代码高亮 -->
+  
+    
+      
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@10.1.1/styles/github.css">
+
+    
+  
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+
+<body>
+
+<div class="menu-outer">
+    <div class="menu-inner">
+      <div class="menu-site-name  animate__animated  animate__fadeInUp">
+        <a href="/">
+          DickCat.
+        </a>
+        
+      </div>
+      <div class="menu-group">
+        <ul class="menu-ul">
+        
+          <a href="/" class="nav-link">
+            <li class="menu-li  animate__animated  animate__fadeInUp">
+              没啥用的主页
+            </li>
+          </a>
+        
+          <a href="/archives" class="nav-link">
+            <li class="menu-li  animate__animated  animate__fadeInUp">
+              学习杂记
+            </li>
+          </a>
+        
+        
+        
+          <li class="menu-li animate__animated  animate__fadeInUp" id="mobile-menu">
+            <i class="ri-menu-line"></i>
+          </li>
+        
+        </ul>
+
+      </div>
+
+    </div>
+</div>
+<div id="mobile-main" class="animate__animated  animate__fadeIn">
+  <div class="mobile-menu-inner">
+    <div class="mobile-menu-site-name animate__animated  animate__fadeInUp">
+      <a href="/">
+        DickCat.
+      </a>
+    </div>
+    <div class="mobile-menu-group" id="mobile-close">
+      <i class="ri-close-line"></i>
+    </div>
+
+  </div>
+
+  <div class="mobile-menu-div">
+  
+    <a href="/" class="mobile-nav-link">
+      <div class="mobile-menu-child animate__animated  animate__fadeInUp">
+        <span>没啥用的主页</span>
+      </div>
+    </a>
+  
+    <a href="/archives" class="mobile-nav-link">
+      <div class="mobile-menu-child animate__animated  animate__fadeInUp">
+        <span>学习杂记</span>
+      </div>
+    </a>
+  
+  
+  </div>
+
+
+</div>
+
+<div class="body-outer">
+  <div class="body-inner">
+    
+<article class="post-inner">
+  <div class="post-content-outer">
+    <div class="post-intro">
+      <div class="post-title animate__animated  animate__fadeInUp">游戏Ai知识汇总</div>
+      <div class="meta-intro animate__animated  animate__fadeInUp">Mar 18 2023</div>
+      
+    </div>
+    <div class="post-content-inner">
+      <div class="post-content-inner-space">
+
+      </div>
+      <div class="post-content-main animate__animated  animate__fadeInUp">
+        <!-- top型目录 -->
+        
+        <h2 id="决策层"><a href="#决策层" class="headerlink" title="决策层"></a>决策层</h2><h3 id="有限状态机"><a href="#有限状态机" class="headerlink" title="有限状态机"></a>有限状态机</h3><h4 id="分层状态机"><a href="#分层状态机" class="headerlink" title="分层状态机"></a>分层状态机</h4><h3 id="行为树"><a href="#行为树" class="headerlink" title="行为树"></a>行为树</h3><h4 id="Tick驱动"><a href="#Tick驱动" class="headerlink" title="Tick驱动"></a>Tick驱动</h4><h4 id="事件驱动"><a href="#事件驱动" class="headerlink" title="事件驱动"></a>事件驱动</h4><h3 id="HTN"><a href="#HTN" class="headerlink" title="HTN"></a>HTN</h3><h3 id="GOAP"><a href="#GOAP" class="headerlink" title="GOAP"></a>GOAP</h3><h2 id="寻路"><a href="#寻路" class="headerlink" title="寻路"></a>寻路</h2><h3 id="A-寻路"><a href="#A-寻路" class="headerlink" title="A*寻路"></a>A*寻路</h3><h3 id="转向系统"><a href="#转向系统" class="headerlink" title="转向系统"></a>转向系统</h3><h3 id="避障系统"><a href="#避障系统" class="headerlink" title="避障系统"></a>避障系统</h3><h4 id="VO避障"><a href="#VO避障" class="headerlink" title="VO避障"></a>VO避障</h4><h4 id="RVO避障"><a href="#RVO避障" class="headerlink" title="RVO避障"></a>RVO避障</h4><h3 id="流场寻路"><a href="#流场寻路" class="headerlink" title="流场寻路"></a>流场寻路</h3><h2 id="Ai的判断"><a href="#Ai的判断" class="headerlink" title="Ai的判断"></a>Ai的判断</h2><h3 id="模糊逻辑（Fuzzy-Logic）"><a href="#模糊逻辑（Fuzzy-Logic）" class="headerlink" title="模糊逻辑（Fuzzy Logic）"></a>模糊逻辑（Fuzzy Logic）</h3><h4 id="什么是逻辑模糊"><a href="#什么是逻辑模糊" class="headerlink" title="什么是逻辑模糊"></a>什么是逻辑模糊</h4><p>在现实生活中，会有许多的事物是无法用一个确定的值来描述的，比如成绩的是否优秀，不能简单的定下一个值来说：高于90分的才是优秀，那89分的就很不服，因为89和90的差距并不大。模糊逻辑便可以帮助我们解决这个问题，让我们在计算机中实现类似于人的思考，</p>
+<p>在游戏中以各种方式使用模糊逻辑。例如，可以使用模糊逻辑来控制机器人或其他npc。也可以使用它来评估玩家构成的威胁。<br>我们可以通过模糊逻辑来对敌人的防御，血量，伤害等数据来给出一个数值，用于行为树或者是FSM中用于控制AI的行为。</p>
+<h4 id="如果使用逻辑模糊"><a href="#如果使用逻辑模糊" class="headerlink" title="如果使用逻辑模糊"></a>如果使用逻辑模糊</h4><p>一个逻辑模糊的流程如下图</p>
+<p>
+        <span class="lazyload-img-span">
+        <img   
+           data-src="/Image/GameAI/%E6%A8%A1%E7%B3%8A%E9%80%BB%E8%BE%91/1.png" >
+        </sapn>
+      </p>
+<p>第一步被称之为模糊化过程，在这一步中我们将清晰明了的数据给转化为模糊数据。比如给定一个人的体重，我们可以给出这个人体重不足，理想体重，超重的所在程度。然后我们根据所得到的结果来去匹配自己的规则。比如我们提前制定好了以下规则</p>
+<p>1.如果超重且不活跃，则经常锻炼</p>
+<p>2.如果超重且活跃，则适度饮食</p>
+<p>我们将体重与活跃程度得到的模糊输入给结合起来，就可以产生一个符合规则的模糊输出。但一个模糊化的输出对于我们而言是没有太大作用的，无法通过一个模糊输出来更改AI的决策，因此还需要将模糊化输出给量化，变成一个确定清晰的值，这一步被称之为 <strong>去模糊化</strong></p>
+<h5 id="模糊化"><a href="#模糊化" class="headerlink" title="模糊化"></a>模糊化</h5><p>对于模糊化操作需要一个模糊函数（也称之为特征函数）。如下图</p>
+<p>
+        <span class="lazyload-img-span">
+        <img   
+           data-src="/Image/GameAI/%E6%A8%A1%E7%B3%8A%E9%80%BB%E8%BE%91/2.png" >
+        </sapn>
+      </p>
+<p>我们对输入的清晰值与X0进行比较，如果大于X0就返回true，反之则返回false，回到体重的例子，我们无法定义一个确定的区间来说明那个阶段是肥胖哪个阶段是瘦弱。因此我们可以采用一个过渡来解决这个问题，如下图</p>
+<p>
+        <span class="lazyload-img-span">
+        <img   
+           data-src="/Image/GameAI/%E6%A8%A1%E7%B3%8A%E9%80%BB%E8%BE%91/3.png" >
+        </sapn>
+      </p>
+<p>在x0与x1之间我们添加了一个过渡，我们可以成为肥胖占比，那么现在我们就可以说你在X0之前是瘦子，X1之后是肥胖。越靠近X1就越胖。回到重量的例子，假设这个函数代表超重的成员。设x0等于175，x1等于195。如果一个人体重170磅，那么他的肥胖比例为0，也就是说，他不超重。如果他体重185磅，那么他肥胖比例为0.5——他有点超重。</p>
+<p>一般来说我们感兴趣的输入变量他不只属于一个集合，换到重量的例子中来说，他不只有肥胖比例，他或许还可以拥有瘦弱比例，（瘦弱的特征函数的输入也是重量），如下图</p>
+<p>
+        <span class="lazyload-img-span">
+        <img   
+           data-src="/Image/GameAI/%E6%A8%A1%E7%B3%8A%E9%80%BB%E8%BE%91/4.png" >
+        </sapn>
+      </p>
+<p>一般来说应该多尝试一些模糊集（即一个函数端），也有建议说使用七个模糊集来充分定义。如下图</p>
+<p>
+        <span class="lazyload-img-span">
+        <img   
+           data-src="/Image/GameAI/%E6%A8%A1%E7%B3%8A%E9%80%BB%E8%BE%91/5.png" >
+        </sapn>
+      </p>
+<p>七个模糊集分别为中心、近右、右、远右、近左、左和远左。根据您的问题，这些类别可以是任何类型。例如，为了表示角色扮演游戏中玩家和非玩家角色的对齐，您可能有模糊集，如中性、中性善、善、混乱善、中性恶、恶和混乱恶。</p>
+<p>经验说每个集合应该与其邻居重叠大约25%。特征函数可以是我们任意形状的函数，由具体的类型来决定。</p>
+<h5 id="Hedges（不知道中文）"><a href="#Hedges（不知道中文）" class="headerlink" title="Hedges（不知道中文）"></a>Hedges（不知道中文）</h5><p>用于修改返回的成员函数的结果。我们完全可以不用这东西，但是论文中可能会有，这里提一嘴</p>
+<h5 id="模糊规则（Fuzzy-Rules）"><a href="#模糊规则（Fuzzy-Rules）" class="headerlink" title="模糊规则（Fuzzy Rules）"></a>模糊规则（Fuzzy Rules）</h5><p>当我们获得了一些值的隶属度以后，我们便可以以一些规则来组合他们，来获得一些输出。获得的输出也被称之为结果。</p>
+<p>一般的逻辑处理符有 AND，OR，NOT，也就是与或非。（当然具体的实现还是得看自己）。<br>$A AND B &#x3D; MIN(A,B),A OR B &#x3D; MAX(A,B),NOT A &#x3D; 1 - A$</p>
+<p>假设你有一个电子游戏，正在使用模糊系统来评估生物是否应该攻击玩家。输入变量包括射程、生物生命值和对手排名。每个成员函数如下图<br>
+        <span class="lazyload-img-span">
+        <img   
+           data-src="/Image/GameAI/%E6%A8%A1%E7%B3%8A%E9%80%BB%E8%BE%91/6.png" >
+        </sapn>
+      </p>
+<p>本例中的输出动作可以是逃跑、攻击或什么都不做。我们可以编写一些规则，看起来如下所示：</p>
+<pre><code>if(可以近战攻击 AND 没有受伤) AND 打得过
+    attack
+if(不在攻击范围) AND 没有受伤
+    do nothing
+if(NOT 超出范围 AND NOT 受伤) AND （NOT 简单）
+    flee
+</code></pre>
+<p>需要注意的是上面只是规则，if内的attack也不是一个特定的动作，而是一个值，是我们经过了模糊规则处理过后的返回值，他代表了<strong>输出模糊集 中的隶属度（the strength of each rule represents the degree of membership in the output fuzzy set.）</strong></p>
+<p>经过上面的规则，和我们的输入值我们可以得到以下的结果</p>
+<pre><code>attack = 0.2
+do nothing = 0.4
+flee  = 0.7
+//代码实现如下
+degreeAttack = MIN(MIN (degreeMelee, degreeUninjured),1.0 - degreeHard);
+
+degreeDoNothing = MIN ( (1.0 - degreeMelee),degreeUninjured);
+
+degreeFlee = MIN (MIN ((1.0 - degreeOutOfRange),(1.0 - degreeUninjured)),(1.0 - degreeWimp));
+</code></pre>
+<p>对于得到的结果，我们可以直接选择最大的可能性（在本例中是逃跑）来执行，也可以自己来处理</p>
+<p>我们可以直接利用隶属度来当权重值然后随机判断，也可以反模拟化将其给变成真正的数值，一般来说我们采用了是一个输出函数，我们为每一个行为都赋予以个权重值，比如逃跑的权重值为-10，什么都不做的权重为1，进攻的权重为10，那么我们反模糊得到的结果为<br>$(0.7)(10) + (0.4)(1) + (0.3)(10)&#x2F;(0.7+0.4+0.3) &#x3D; -2.5$<br>那么我们就会慢慢逃跑。</p>
+<p>总之，我们可以通过自己提前定义好的函数，将所得到的模糊结果处理，最终应用到自己的Ai中去</p>
+<h2 id="多人Ai"><a href="#多人Ai" class="headerlink" title="多人Ai"></a>多人Ai</h2><h2 id="感知"><a href="#感知" class="headerlink" title="感知"></a>感知</h2>
+        <!-- 分类文章 -->
+        
+      </div>
+      <div class="post-content-inner-space">
+        
+          <div class="space-toc-main animate__animated  animate__fadeInUp">
+            <ol class="space-toc"><li class="space-toc-item space-toc-level-2"><a class="space-toc-link" href="#%E5%86%B3%E7%AD%96%E5%B1%82"><span class="space-toc-text">决策层</span></a></li><li class="space-toc-item space-toc-level-2"><a class="space-toc-link" href="#%E5%AF%BB%E8%B7%AF"><span class="space-toc-text">寻路</span></a></li><li class="space-toc-item space-toc-level-2"><a class="space-toc-link" href="#Ai%E7%9A%84%E5%88%A4%E6%96%AD"><span class="space-toc-text">Ai的判断</span></a></li><li class="space-toc-item space-toc-level-2"><a class="space-toc-link" href="#%E5%A4%9A%E4%BA%BAAi"><span class="space-toc-text">多人Ai</span></a></li><li class="space-toc-item space-toc-level-2"><a class="space-toc-link" href="#%E6%84%9F%E7%9F%A5"><span class="space-toc-text">感知</span></a></li></ol>
+           </div>
+        
+      </div>
+   </div>
+    <!-- 评论 -->
+    
+  </div>
+</article>
+  </div>
+</div>
+
+
+
+<!-- 如果是home模式的话，不在首页就显示footer，如果不是home模式的话 所有都显示footer -->
+
+  <div class="footer-outer animate__animated  animate__fadeInUp">
+    <div class="footer-inner">
+    <div class="footer-text">
+    <p>My Blog</p>
+
+    </div>
+    <div class="footer-contact">
+    <ul class="footer-ul">
+        
+        <li class="footer-li">
+            <a href="https://github.com/shuangrenxu123/GameCode" target="_blank">
+                <i class="ri-github-line"></i>
+            </a>
+        </li>
+        
+        <li class="footer-li">
+            <a href="mailto:1919802366@qq.com" target="_blank">
+                <i class="ri-mail-line"></i>
+            </a>
+        </li>
+        
+    </ul>
+    </div>
+    </div>
+</div>
+
+
+
+
+
+
+<script src="/js/white.js"></script>
+
+
+
+    
+      
+<script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@9.18.1/build/highlight.min.js"></script>
+
+      <script>hljs.initHighlightingOnLoad();</script>
+    
+
+</body>
+</html>
