@@ -284,9 +284,13 @@ void MyEpoll::handle_events(epoll_event* events, int num, char* buff, int&amp; b
 &#125;
 </code></pre>
 <p>由于events的是位操作（类似于c#的多enum）。因此我们只用将其值和想要判断的类型想与即可。记得在所有的操作完毕以后调用close关闭fd。不然有可能会造成无fd可用的局面。</p>
-<h2 id="epoll的LT与ET"><a href="#epoll的LT与ET" class="headerlink" title="epoll的LT与ET"></a>epoll的LT与ET</h2><p>待补充</p>
+<h2 id="epoll的LT与ET"><a href="#epoll的LT与ET" class="headerlink" title="epoll的LT与ET"></a>epoll的LT与ET</h2><p>epoll对文件描述符的操作方式有两种工作模式：LT模式(Level Trigger，水平触发) 和ET模式(Edge Trigger，边缘触发)。</p>
+<p>LT模式：当epoll_wait检测到其上有事件发生并将此事件通知应用程序后，应用程序可以不立即处理该事件，这样，当应用程序下一次调用epoll_wait时，epoll_wait还会向应用程序通告此事件，直到该事件被处理。(（缓冲区剩余未读尽的数据会导致epoll_wait返回.）</p>
+<p>a.用户不读数据，数据一直在缓冲区，epoll会一直通知<br>b.用户只读了一部分数据，epoll会通知<br>c.缓冲区的数据读完了，不通知</p>
+<p>ET模式：当epoll_wait检测到其上有事件发生并将此事件通知应用程序后，应用程序必须立即处理该事件，因为后续的epoll_wait调用将不在向应用程序通告此事件。</p>
+<p>a.用户不读数据，数据一致在缓冲区中，epoll下次检测的时候就不通知了<br>b.用户只读了一部分数据，epoll不通知<br>c.缓冲区的数据读完了，不通知</p>
 <h2 id="epoll的其他事件描述符"><a href="#epoll的其他事件描述符" class="headerlink" title="epoll的其他事件描述符"></a>epoll的其他事件描述符</h2><p>待补充</p>
-<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><p><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/367591714?utm_source=qq&utm_medium=social&utm_oi=948333124162195456">深入浅出理解select、poll、epoll的实现</a></p>
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><p><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/367591714?utm_source=qq&utm_medium=social&utm_oi=948333124162195456">深入浅出理解select、poll、epoll的实现</a><br><a target="_blank" rel="noopener" href="https://blog.csdn.net/ldw201510803006/article/details/119767467?spm=1001.2014.3001.5501">一文搞懂，4种主要的 I&#x2F;O 模型（高并发IO的底层原理）</a><br><a target="_blank" rel="noopener" href="https://juejin.cn/post/7092436770519777311#heading-2">高性能网络编程之 Reactor 网络模型</a></p>
 
         <!-- 分类文章 -->
         

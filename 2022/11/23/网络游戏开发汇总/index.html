@@ -119,20 +119,22 @@
       <div class="post-content-main animate__animated  animate__fadeInUp">
         <!-- top型目录 -->
         
-        <h2 id="底层架构"><a href="#底层架构" class="headerlink" title="底层架构"></a>底层架构</h2><p>帧同步<br>状态同步</p>
-<h2 id="开发层面"><a href="#开发层面" class="headerlink" title="开发层面"></a>开发层面</h2><h4 id="数据插值"><a href="#数据插值" class="headerlink" title="数据插值"></a>数据插值</h4><p>内插：即我们对于发来的两个数据。会进行一个线性插值。我们就会需要一个buff来缓冲接收到的数据，以便于我可以一直有数据来插值，这样的好处在于，我的移动会十分的顺滑。但是导致延迟较高，个小问题是如果B玩家急停急走的话，对于A看来是没有太大变化的。无法真正表现出来，第二个问题是采用这个插值会导致两个客户端看起来不一样。</p>
+        <h2 id="帧同步"><a href="#帧同步" class="headerlink" title="帧同步"></a>帧同步</h2><h2 id="状态同步"><a href="#状态同步" class="headerlink" title="状态同步"></a>状态同步</h2><h2 id="开发层面"><a href="#开发层面" class="headerlink" title="开发层面"></a>开发层面</h2><h3 id="数据插值"><a href="#数据插值" class="headerlink" title="数据插值"></a>数据插值</h3><p>内插：即我们对于发来的两个数据。会进行一个线性插值。我们就会需要一个buff来缓冲接收到的数据，以便于我可以一直有数据来插值，这样的好处在于，我的移动会十分的顺滑。但是导致延迟较高，个小问题是如果B玩家急停急走的话，对于A看来是没有太大变化的。无法真正表现出来，第二个问题是采用这个插值会导致两个客户端看起来不一样。</p>
 <p>外插：我们可以预测别人的行动，根据现有的条件来预测接下来的行为，比如某一时刻接收到了B玩家的方向与速度，我们可以在接收到下一个数据报之前，先按照已经接收到的数据来执行着。外插值的缺点：比如赛车游戏，因为是外插值的原因，可能会导致在某一刻碰撞体交叉了，而碰撞体交叉他会给一个很大的力让物体都被弹飞。简单解决的办法的思想：在客户端内存在一个碰撞检测。当要发生碰撞时，我们就会放弃网络所发来的数据，暂时性的让客户端来控制，</p>
-<h4 id="修正"><a href="#修正" class="headerlink" title="修正"></a>修正</h4><p>拥有了预测那势必会有偏差，在T0时刻我们假设他们位置是相同的。我们按照T0时刻接收到的速度来预测他下一步的动作，当T1时刻我们接收到了新的包，在A中显示的B是出于P0，而实际接收到的包中他却在P1，这个时候我们就需要修正了</p>
+<h3 id="修正"><a href="#修正" class="headerlink" title="修正"></a>修正</h3><p>拥有了预测那势必会有偏差，在T0时刻我们假设他们位置是相同的。我们按照T0时刻接收到的速度来预测他下一步的动作，当T1时刻我们接收到了新的包，在A中显示的B是出于P0，而实际接收到的包中他却在P1，这个时候我们就需要修正了</p>
 <p>直接修正：直接修正，单纯的重置坐标与速度等信息。优点是方便快捷，如果不是剧烈波动，看起来还说比较平滑。缺点是如果网不好，或者坐标信息变化剧烈会导致跳动。</p>
 <p>线性插值平滑：即假设T1-T0的时间段是delta。我们在T1时刻接收到包以后，在delta时间内插值到目的地。速度与坐标都插值，缺点是当延迟大的时候会导致看起来是十分的僵硬。</p>
 <p>立方体插值：<a target="_blank" rel="noopener" href="https://github.com/PupYuan/Online_SpaceShooter">PupYuan&#x2F;Online_SpaceShooter: A Demo to illustrate State Synchronization Solution in Unity (github.com)</a>，<br>总结：对于游戏中物体会变化较大的值我们可以采用内插值，对于变化不明显的可以采用外插值。内外插值是针对于同步过来的数据而言，对于自己是不需要外插内插的。（虽然回滚的思想与内插差不多）</p>
-<h4 id="命中判断"><a href="#命中判断" class="headerlink" title="命中判断"></a>命中判断</h4><p>客户端判断：即由客户端来通知服务端打中没有，所见即所得，手感略好，当然服务端也需要一点点简单的验证。缺点是不安全，容易出现挂壁</p>
+<h3 id="命中判断"><a href="#命中判断" class="headerlink" title="命中判断"></a>命中判断</h3><p>客户端判断：即由客户端来通知服务端打中没有，所见即所得，手感略好，当然服务端也需要一点点简单的验证。缺点是不安全，容易出现挂壁</p>
 <p>服务端判断：即由服务端来判断是否击中了敌人，但问题在于客户端会变得很难击中，因为客户端在射击敌人了以后给服务端发送了包，服务端经过延迟收到了把以后经过判断有可能敌人已经走到其他位置了，所以会导致很难击中移动中的敌人。</p>
-<h4 id="一些有意思的小知识"><a href="#一些有意思的小知识" class="headerlink" title="一些有意思的小知识"></a>一些有意思的小知识</h4><p>有意思的设计：前摇，可以帮我们补偿一些发送中所需要的时间。比如我在施法的一瞬间就发送了包，而前摇要40ms，发送要50ms，那么真正的击中误差就只有10ms了。对于需要服务端返回确定的消息，比如是否击中了敌人，我们可以先在本地来播放血液等特效来增加手感。到时候再扣除生命值。</p>
-<h4 id="带宽优化"><a href="#带宽优化" class="headerlink" title="带宽优化"></a>带宽优化</h4><ol>
+<h3 id="其他"><a href="#其他" class="headerlink" title="其他"></a>其他</h3><p>有意思的设计：前摇，可以帮我们补偿一些发送中所需要的时间。比如我在施法的一瞬间就发送了包，而前摇要40ms，发送要50ms，那么真正的击中误差就只有10ms了。对于需要服务端返回确定的消息，比如是否击中了敌人，我们可以先在本地来播放血液等特效来增加手感。到时候再扣除生命值。</p>
+<h3 id="带宽优化"><a href="#带宽优化" class="headerlink" title="带宽优化"></a>带宽优化</h3><ol>
 <li>对于一些经常发的数据，比如像是速度，方向等。我们可以减少发送频率，因为在短的时间端内他不会出现大幅度的运动。比如我们可以每0.2s就发送一次不用每帧发送一次</li>
 <li>对于一些较小的数字，我们可以将其合并到一个int里面来发送，这样也可以优化发送的数据量</li>
 </ol>
+<h2 id="预测与回滚"><a href="#预测与回滚" class="headerlink" title="预测与回滚"></a>预测与回滚</h2><p> 我们应该在客户端维护一个帧数组。当某个时候我们掉线了。我们可以记录下自己运行到了多少帧和记录下当前的状态信息，即快照。当重新连回来了以后我们再去喊服务端发送过来剩下的帧即可。也被称之为追帧，王者荣耀早期版本断线后我们就会发现他会快速的运行一遍以及发生过的事情。这便是在追帧。</p>
+<p> 还有一种方案解决延迟的方案是我们的客户端的帧号领先于服务端，比如我们的A，B已经运行到了100帧，而服务端才运行到95（即分发了95）.我们分别 执行了A（攻击），B（移动）发送给服务端。然后这时候服务端也才分发到95.然后继续执行。等服务端开始分发到100的时候（其实服务端是有104帧的，只是慢几针）客户端已经运行到104了。这个时候我们客户端A接收到了操作，由于A预测的B是移动，并且B确实是移动。因此A不需要追帧。B预测的A是移动，但是A是攻击。所以并不合法。因此从B就会回到第99帧的状态（因为100帧就预测错误了，后面的预测也就可以放弃了）开始追帧直到跟上服务端发送来的最新一帧（可能是103）。</p>
+<h2 id="相关资料"><a href="#相关资料" class="headerlink" title="相关资料"></a>相关资料</h2><p><a target="_blank" rel="noopener" href="https://www.jianshu.com/p/c1fb23afbabe">如何实现确定性的网络同步</a><br><a target="_blank" rel="noopener" href="https://www.jianshu.com/p/6c1b37735c85">服务器将状态同步给客户端</a><br><a target="_blank" rel="noopener" href="https://www.jianshu.com/p/5dbdf81c4e69">客户端本地预测表现</a><br><a target="_blank" rel="noopener" href="http://www.skywind.me/blog/archives/112">网络游戏同步法则</a><br><a target="_blank" rel="noopener" href="http://www.skywind.me/blog/archives/1145">影子追随算法</a><br><a target="_blank" rel="noopener" href="https://blog.csdn.net/qq_31967569/article/details/81660040">帧同步联机战斗（预测，快照，回滚</a></p>
 
         <!-- 分类文章 -->
         
@@ -140,7 +142,7 @@
       <div class="post-content-inner-space">
         
           <div class="space-toc-main animate__animated  animate__fadeInUp">
-            <ol class="space-toc"><li class="space-toc-item space-toc-level-2"><a class="space-toc-link" href="#%E5%BA%95%E5%B1%82%E6%9E%B6%E6%9E%84"><span class="space-toc-text">底层架构</span></a></li><li class="space-toc-item space-toc-level-2"><a class="space-toc-link" href="#%E5%BC%80%E5%8F%91%E5%B1%82%E9%9D%A2"><span class="space-toc-text">开发层面</span></a></li></ol>
+            <ol class="space-toc"><li class="space-toc-item space-toc-level-2"><a class="space-toc-link" href="#%E5%B8%A7%E5%90%8C%E6%AD%A5"><span class="space-toc-text">帧同步</span></a></li><li class="space-toc-item space-toc-level-2"><a class="space-toc-link" href="#%E7%8A%B6%E6%80%81%E5%90%8C%E6%AD%A5"><span class="space-toc-text">状态同步</span></a></li><li class="space-toc-item space-toc-level-2"><a class="space-toc-link" href="#%E5%BC%80%E5%8F%91%E5%B1%82%E9%9D%A2"><span class="space-toc-text">开发层面</span></a></li><li class="space-toc-item space-toc-level-2"><a class="space-toc-link" href="#%E9%A2%84%E6%B5%8B%E4%B8%8E%E5%9B%9E%E6%BB%9A"><span class="space-toc-text">预测与回滚</span></a></li><li class="space-toc-item space-toc-level-2"><a class="space-toc-link" href="#%E7%9B%B8%E5%85%B3%E8%B5%84%E6%96%99"><span class="space-toc-text">相关资料</span></a></li></ol>
            </div>
         
       </div>
