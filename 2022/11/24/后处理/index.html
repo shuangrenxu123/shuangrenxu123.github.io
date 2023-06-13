@@ -121,160 +121,152 @@
         
         <h2 id="介绍"><a href="#介绍" class="headerlink" title="介绍"></a>介绍</h2><p>屏幕后处理是一种基本的操作，它主要是在所有的绘制都完成了以后来处理，从而达到想要的效果，比如雾气效果，</p>
 <h2 id="使用方法"><a href="#使用方法" class="headerlink" title="使用方法"></a>使用方法</h2><p>后处理的原理是我们的摄像机渲染完毕以后，还未输出之前来截获他。然后通过一个指定的Shader来处理我们要渲染出去的图片，从而达到某种效果，使用中我们需要写一个C#脚本挂载在我们的摄像机上，其中主要的代码为</p>
-<pre><code>void OnRenderImage(RenderTexture src,RenderTexture des)
+<pre><code class="c#">void OnRenderImage(RenderTexture src,RenderTexture des)
 &#123;
     Graphics.Blit(src, des,material);
-&#125;    
+&#125;  
 </code></pre>
 <p>其中OnRenderImage函数用于帮我们截获以及处理图像，其中 <strong>Src</strong> 参数为我们摄像机所输出的画面， <strong>des</strong> 为我们想要输出的画面，而方法 <strong>Graphics.Blit()</strong> 决定了我们怎么处理画面，他会将参数 <strong>src</strong>赋值给材质shader中指定的_MainTex参数，在shader看来，他其实是输入的一个Quad，因此也是会经过顶点着色器和片元着色器，只不过最后的输出是输出了一个纹理给我们，也即是第二个参数des。因此一个最简单的屏幕后处理的挂载脚本长以下这样</p>
-<pre><code>using UnityEngine;
-[ExecuteInEditMode]
-public class Posteffects : MonoBehaviour
-&#123;
-    public Material material;
-    Camera Camera;
-    void Start()
+<pre><code class="c#">    using UnityEngine;
+    [ExecuteInEditMode]
+    public class Posteffects : MonoBehaviour
     &#123;
-        Camera = GetComponent&lt;Camera&gt;();
-        Camera.depthTextureMode = DepthTextureMode.Depth;
+        public Material material;
+        Camera Camera;
+        void Start()
+        &#123;
+            Camera = GetComponent&lt;Camera&gt;();
+            Camera.depthTextureMode = DepthTextureMode.Depth;
 
+        &#125;
+        void OnRenderImage(RenderTexture src,RenderTexture des)
+        &#123;
+            Graphics.Blit(src, des,material);
+        &#125;
     &#125;
-    void OnRenderImage(RenderTexture src,RenderTexture des)
-    &#123;
-        Graphics.Blit(src, des,material);
-    &#125;
-&#125;
 </code></pre>
 <h2 id="雾气效果"><a href="#雾气效果" class="headerlink" title="雾气效果"></a>雾气效果</h2><p>既然我们已经了解到了后处理的原理，那我们便来写一个最简单的例子————雾气效果。其中的挂载的C#脚本在上文已经给出，我们这里就只会放出Shader内容，写完后只需要创建一个Material，然后把shader丢上去即可。</p>
 <p>在最简单的雾气处理中，我们会需要用到深度图（DepthTexture）。摄像机的纹理，以及雾气颜色。<br>因此我们的变量如下。</p>
-<pre><code>Properties
-&#123;
-    _MainTex(&quot;MainTex&quot;,2D) =&quot;white&quot;&#123;&#125;
-    _FogColor(&quot;FogColor&quot;,Color) = (1,1,1,1)
-    _FogDepth(&quot;depth&quot;,Range(0,10)) = 1
-&#125;
-</code></pre>
-<p>对于传递信息的结构体也没有什么好解释的，如下<br>    struct appdata<br>    {<br>        float4 vertex : POSITION;<br>        float2 uv : TEXCOORD0;<br>    };</p>
-<pre><code>struct v2f
-&#123;
-    float2 uv : TEXCOORD0;
-    float4 vertex : SV_POSITION;
-&#125;;
-</code></pre>
-<p>片元着色器中正常的处理顶点裁剪和uv缩放即可。如下</p>
-<pre><code>v2f vert (appdata v)
-&#123;
-    v2f o;
-    o.vertex = UnityObjectToClipPos(v.vertex);
-    o.uv = TRANSFORM_TEX(v.uv, _MainTex);
-    return o;
-&#125;
-</code></pre>
-<p>由于现实中的雾气都是离近了看就要好一些，离远了看就看不清，因此我们需要在片元着色器中获得深度值来控制雾的浓度。然后根据雾气的浓度对每一个像素的颜色进行改变。</p>
-<pre><code>fixed4 frag(v2f i) : SV_Target
-&#123;
-    fixed4 color = tex2D(_MainTex,i.uv);
-    float depth = Linear01Depth(SAMPLE_DEPTH_TEXTURE(_CameraDepthTexture,i.uv));
-    float fog = saturate(depth * pow(2,_FogDepth));
-    fixed4 col = lerp(color,_FogColor,fog);
-    return col;
-&#125;
-</code></pre>
-<p>至此我们便简单的实现了一个简单的后处理雾效。</p>
-<h2 id="通过后处理来还原世界坐标"><a href="#通过后处理来还原世界坐标" class="headerlink" title="通过后处理来还原世界坐标"></a>通过后处理来还原世界坐标</h2><p>在某些需求下我们会需要还原像素点他的真实世界坐标，比如高度雾，他就需要判断每一个像素点的真实高度值，</p>
-<h3 id="原理"><a href="#原理" class="headerlink" title="原理"></a>原理</h3><p>深度缓冲中存放的值是我们距离近平面的值，当物体的值与近平面相同时，他的深度值便为0，与远平面相同时，深度值为1，</p>
-<p>
-        <span class="lazyload-img-span">
-        <img   
-           data-src="https://img-blog.csdnimg.cn/20181220153510881.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dvZG93bmxvYWQy,size_16,color_FFFFFF,t_70" >
-        </sapn>
-      </p>
-<p>既然如此，我们便可以打出很多条由摄像机为起点，远平面上的每一个像素点为重点的向量。然后乘以深度值，我们便获得了一条由摄像机为起点，像素点为重点的向量，向量再加上我们摄像机的世界坐标值，便可以获得该像素点具体的世界坐标。<br>首先我们需要在C#脚本中来获得四条关键向量，即图中的 <strong>o</strong> 点到远平面 <strong>ABCD</strong> 四点的四条向量。</p>
-<pre><code>private void OnRenderImage(RenderTexture source, RenderTexture destination)
-&#123;
-    //角度，为竖直具体的角度
-    var fov = m_camera.fieldOfView;
-    //到远平面的距离
-    var far = m_camera.farClipPlane;
-    //平面横纵比，宽度除以高度
-    var aspect = m_camera.aspect;
+<pre><code class="c">    Properties
+    &#123;
+        _MainTex(&quot;MainTex&quot;,2D) =&quot;white&quot;&#123;&#125;
+        _FogColor(&quot;FogColor&quot;,Color) = (1,1,1,1)
+        _FogDepth(&quot;depth&quot;,Range(0,10)) = 1
+    &#125;
+对于传递信息的结构体也没有什么好解释的，如下
+    struct appdata
+    &#123;
+        float4 vertex : POSITION;
+        float2 uv : TEXCOORD0;
+    &#125;;
 
-    //远平面一半的高度
-    var halfHeight = far * Mathf.Tan(fov / 2 * Mathf.Deg2Rad);
-    //远平面的一半高
-    var toTop = m_camera.transform.up * halfHeight;
-    //远平面一半宽
-    var toRight = m_camera.transform.right * halfHeight * aspect;
-    //正向
-    var toForward = m_camera.transform.forward * far;
-    //四条到远平面四个点的向量
-    var topLeft = toForward + toTop - toRight;
-    var topRight = toForward + toTop + toRight;
-    var bottomLeft = toForward - toTop - toRight;
-    var bottomRight = toForward - toTop + toRight;
+    struct v2f
+    &#123;
+        float2 uv : TEXCOORD0;
+        float4 vertex : SV_POSITION;
+    &#125;;
+    ```
+片元着色器中正常的处理顶点裁剪和uv缩放即可。如下
+```c
+    v2f vert (appdata v)
+    &#123;
+        v2f o;
+        o.vertex = UnityObjectToClipPos(v.vertex);
+        o.uv = TRANSFORM_TEX(v.uv, _MainTex);
+        return o;
+    &#125;```
+由于现实中的雾气都是离近了看就要好一些，离远了看就看不清，因此我们需要在片元着色器中获得深度值来控制雾的浓度。然后根据雾气的浓度对每一个像素的颜色进行改变。
+```c
+    fixed4 frag(v2f i) : SV_Target
+    &#123;
+        fixed4 color = tex2D(_MainTex,i.uv);
+        float depth = Linear01Depth(SAMPLE_DEPTH_TEXTURE(_CameraDepthTexture,i.uv));
+        float fog = saturate(depth * pow(2,_FogDepth));
+        fixed4 col = lerp(color,_FogColor,fog);
+        return col;
+    &#125;
+    ```
+至此我们便简单的实现了一个简单的后处理雾效。
+## 通过后处理来还原世界坐标
+在某些需求下我们会需要还原像素点他的真实世界坐标，比如高度雾，他就需要判断每一个像素点的真实高度值，
+### 原理
+深度缓冲中存放的值是我们距离近平面的值，当物体的值与近平面相同时，他的深度值便为0，与远平面相同时，深度值为1，
 
-    frustunCorners.SetRow(0, bottomLeft);
-    frustunCorners.SetRow(1, bottomRight);
-    frustunCorners.SetRow(2, topLeft);
-    frustunCorners.SetRow(3, topRight);
-    material.SetMatrix(&quot;_FrustunCornersRay&quot;,frustunCorners);
-    Graphics.Blit(source,destination,material);
-&#125;
-</code></pre>
-<p>在上面我们获得了摄像机的相关属性，比如长宽比，开合角度和到远平面的距离，从而求得了远平面四个点到我们摄像机的起点的距离信息，然后我们获得了四条向量，并设置了shader内的矩阵变量，需要注意的是这里不能调换顺序，不然在片元着色器中会出现插值错误。<br>在顶点着色器中我们只用简单的设置一下顶点信息即可</p>
-<pre><code>v2f vert (appdata v)
-&#123;
-    v2f o;
-    o.pos = UnityObjectToClipPos(v.vertex);
-    o.uv = v.texcoord;
-    o.uvdepth = v.texcoord;
-    int index = 0;
-    if (v.texcoord.x &lt; 0.5 &amp;&amp; v.texcoord.y &lt; 0.5) &#123;
-        index = 0;
+![投影相机相机](https://img-blog.csdnimg.cn/20181220153510881.png?x-oss-process=image/watermark,type_ZmFuZ3poZW5naGVpdGk,shadow_10,text_aHR0cHM6Ly9ibG9nLmNzZG4ubmV0L3dvZG93bmxvYWQy,size_16,color_FFFFFF,t_70
+)
+
+既然如此，我们便可以打出很多条由摄像机为起点，远平面上的每一个像素点为重点的向量。然后乘以深度值，我们便获得了一条由摄像机为起点，像素点为重点的向量，向量再加上我们摄像机的世界坐标值，便可以获得该像素点具体的世界坐标。
+首先我们需要在C#脚本中来获得四条关键向量，即图中的 **o** 点到远平面 **ABCD** 四点的四条向量。
+```c#
+    private void OnRenderImage(RenderTexture source, RenderTexture destination)
+    &#123;
+        //角度，为竖直具体的角度
+        var fov = m_camera.fieldOfView;
+        //到远平面的距离
+        var far = m_camera.farClipPlane;
+        //平面横纵比，宽度除以高度
+        var aspect = m_camera.aspect;
+
+        //远平面一半的高度
+        var halfHeight = far * Mathf.Tan(fov / 2 * Mathf.Deg2Rad);
+        //远平面的一半高
+        var toTop = m_camera.transform.up * halfHeight;
+        //远平面一半宽
+        var toRight = m_camera.transform.right * halfHeight * aspect;
+        //正向
+        var toForward = m_camera.transform.forward * far;
+        //四条到远平面四个点的向量
+        var topLeft = toForward + toTop - toRight;
+        var topRight = toForward + toTop + toRight;
+        var bottomLeft = toForward - toTop - toRight;
+        var bottomRight = toForward - toTop + toRight;
+
+        frustunCorners.SetRow(0, bottomLeft);
+        frustunCorners.SetRow(1, bottomRight);
+        frustunCorners.SetRow(2, topLeft);
+        frustunCorners.SetRow(3, topRight);
+        material.SetMatrix(&quot;_FrustunCornersRay&quot;,frustunCorners);
+        Graphics.Blit(source,destination,material);
     &#125;
-    else if (v.texcoord.x &gt; 0.5 &amp;&amp; v.texcoord.y &lt; 0.5) &#123;
-         index = 1;
+    ```
+在上面我们获得了摄像机的相关属性，比如长宽比，开合角度和到远平面的距离，从而求得了远平面四个点到我们摄像机的起点的距离信息，然后我们获得了四条向量，并设置了shader内的矩阵变量，需要注意的是这里不能调换顺序，不然在片元着色器中会出现插值错误。
+在顶点着色器中我们只用简单的设置一下顶点信息即可
+```c
+    v2f vert (appdata v)
+    &#123;
+        v2f o;
+        o.pos = UnityObjectToClipPos(v.vertex);
+        o.uv = v.texcoord;
+        o.uvdepth = v.texcoord;
+        int index = 0;
+        if (v.texcoord.x &lt; 0.5 &amp;&amp; v.texcoord.y &lt; 0.5) &#123;
+            index = 0;
+        &#125;
+        else if (v.texcoord.x &gt; 0.5 &amp;&amp; v.texcoord.y &lt; 0.5) &#123;
+             index = 1;
+        &#125;
+        else if (v.texcoord.x &gt; 0.5 &amp;&amp; v.texcoord.y &gt; 0.5) &#123;
+            index = 2;
+        &#125;
+        else &#123;
+            index = 3;
+        &#125;
+        o.ray = _FrustunCornersRay[index];
+        return o;
     &#125;
-    else if (v.texcoord.x &gt; 0.5 &amp;&amp; v.texcoord.y &gt; 0.5) &#123;
-        index = 2;
-    &#125;
-    else &#123;
-        index = 3;
-    &#125;
-    o.ray = _FrustunCornersRay[index];
-    return o;
-&#125;
 </code></pre>
 <p>虽然在shader中使用if会影响性能，但是由于顶点数量不多（只有四个），因此影响不大，我们在这里判断了顶点所在的位置，并赋值了具体的向量信息，后面的片元向量则可以通过这四条向量插值获得。最后我们在片元着色器中通过判断像素的高度来控制雾气的浓度</p>
-<pre><code>fixed4 frag (v2f i) : SV_Target
-&#123;
-    float depth = Linear01Depth(SAMPLE_DEPTH_TEXTURE(_CameraDepthTexture, i.uvdepth));
-    float4 toCameraDir = depth * i.ray;
-    float3 worldPos = _WorldSpaceCameraPos + toCameraDir;//获得顶点的世界坐标
-
-    float fogDensity = (_FogEnd - worldPos.y) / (_FogEnd - _FogStart);
+<p>&#96;&#96;&#96;c<br>    fixed4 frag (v2f i) : SV_Target<br>    {<br>        float depth &#x3D; Linear01Depth(SAMPLE_DEPTH_TEXTURE(_CameraDepthTexture, i.uvdepth));<br>        float4 toCameraDir &#x3D; depth * i.ray;<br>        float3 worldPos &#x3D; _WorldSpaceCameraPos + toCameraDir;&#x2F;&#x2F;获得顶点的世界坐标</p>
+<pre><code>    float fogDensity = (_FogEnd - worldPos.y) / (_FogEnd - _FogStart);
     fogDensity = saturate(fogDensity * pow(2,_FogDensity));
     fixed4 finalColor = tex2D(_MainTex, i.uv);
     finalColor.rgb = lerp(finalColor.rgb,_FogColor.rgb,fogDensity);
     return finalColor;
 &#125;
+```
 </code></pre>
-<h2 id="完整代码"><a href="#完整代码" class="headerlink" title="完整代码"></a>完整代码</h2><pre><code>Shader &quot;Unlit/FogWithDepthTexture&quot;
-&#123;
-Properties
-&#123;
-    _MainTex (&quot;Texture&quot;, 2D) = &quot;white&quot; &#123;&#125;
-    _FogDensity(&quot;Fog Density&quot;,Range(1,5)) =1
-        _FogColor(&quot;Fog Color&quot;,Color) = (1,1,1,1)
-        _FogStart(&quot;fog start hight&quot;,Range(0,10)) = 1
-        _FogEnd(&quot;fog End hight&quot;,Range(0,10)) =5
-&#125;
-SubShader
-&#123;
-    Tags &#123; &quot;RenderType&quot;=&quot;Opaque&quot; &#125;
-    LOD 100
-
-    Pass
+<h2 id="完整代码"><a href="#完整代码" class="headerlink" title="完整代码"></a>完整代码</h2><p>&#96;&#96;&#96;c<br>    Shader “Unlit&#x2F;FogWithDepthTexture”<br>    {<br>    Properties<br>    {<br>        _MainTex (“Texture”, 2D) &#x3D; “white” {}<br>        _FogDensity(“Fog Density”,Range(1,5)) &#x3D;1<br>            _FogColor(“Fog Color”,Color) &#x3D; (1,1,1,1)<br>            _FogStart(“fog start hight”,Range(0,10)) &#x3D; 1<br>            _FogEnd(“fog End hight”,Range(0,10)) &#x3D;5<br>    }<br>    SubShader<br>    {<br>        Tags { “RenderType”&#x3D;”Opaque” }<br>        LOD 100</p>
+<pre><code>    Pass
     &#123;
         CGPROGRAM
         #pragma vertex vert
@@ -344,6 +336,7 @@ SubShader
     &#125;
 &#125;
 &#125;
+```
 </code></pre>
 
         <!-- 分类文章 -->
@@ -352,7 +345,7 @@ SubShader
       <div class="post-content-inner-space">
         
           <div class="space-toc-main animate__animated  animate__fadeInUp">
-            <ol class="space-toc"><li class="space-toc-item space-toc-level-2"><a class="space-toc-link" href="#%E4%BB%8B%E7%BB%8D"><span class="space-toc-text">介绍</span></a></li><li class="space-toc-item space-toc-level-2"><a class="space-toc-link" href="#%E4%BD%BF%E7%94%A8%E6%96%B9%E6%B3%95"><span class="space-toc-text">使用方法</span></a></li><li class="space-toc-item space-toc-level-2"><a class="space-toc-link" href="#%E9%9B%BE%E6%B0%94%E6%95%88%E6%9E%9C"><span class="space-toc-text">雾气效果</span></a></li><li class="space-toc-item space-toc-level-2"><a class="space-toc-link" href="#%E9%80%9A%E8%BF%87%E5%90%8E%E5%A4%84%E7%90%86%E6%9D%A5%E8%BF%98%E5%8E%9F%E4%B8%96%E7%95%8C%E5%9D%90%E6%A0%87"><span class="space-toc-text">通过后处理来还原世界坐标</span></a></li><li class="space-toc-item space-toc-level-2"><a class="space-toc-link" href="#%E5%AE%8C%E6%95%B4%E4%BB%A3%E7%A0%81"><span class="space-toc-text">完整代码</span></a></li></ol>
+            <ol class="space-toc"><li class="space-toc-item space-toc-level-2"><a class="space-toc-link" href="#%E4%BB%8B%E7%BB%8D"><span class="space-toc-text">介绍</span></a></li><li class="space-toc-item space-toc-level-2"><a class="space-toc-link" href="#%E4%BD%BF%E7%94%A8%E6%96%B9%E6%B3%95"><span class="space-toc-text">使用方法</span></a></li><li class="space-toc-item space-toc-level-2"><a class="space-toc-link" href="#%E9%9B%BE%E6%B0%94%E6%95%88%E6%9E%9C"><span class="space-toc-text">雾气效果</span></a></li><li class="space-toc-item space-toc-level-2"><a class="space-toc-link" href="#%E5%AE%8C%E6%95%B4%E4%BB%A3%E7%A0%81"><span class="space-toc-text">完整代码</span></a></li></ol>
            </div>
         
       </div>

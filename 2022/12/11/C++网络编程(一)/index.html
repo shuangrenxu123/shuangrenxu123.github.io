@@ -137,78 +137,29 @@ int socket(int domain, int type, int protocol);
       </p>
 <p>详细的知识可以<a target="_blank" rel="noopener" href="https://blog.csdn.net/yushuaigee/article/details/107883964">点击这里</a>去了解。</p>
 <h2 id="Bind"><a href="#Bind" class="headerlink" title="Bind"></a>Bind</h2><p>当我们创建了一个监听的socket时，他还不知道去监听哪个ip（有多个网卡的话会有多个ip地址），哪个端口。因此我们要在这里利用Bind函数指明所监听的ip地址与端口号。</p>
-<pre><code>#include&lt;sys/types.h&gt;
-#include&lt;sys/socket.h&gt;
-int bind(int sockfd,const struct sockaddr* my_addr,socklen_t addrlen);
+<pre><code class="cpp">    #include&lt;sys/types.h&gt;
+    #include&lt;sys/socket.h&gt;
+    int bind(int sockfd,const struct sockaddr* my_addr,socklen_t addrlen);
 </code></pre>
 <p>老规矩我们先说一下函数的参数，第一个便是我们监听的socket的文件操作符，第二个参数是一个结构体，负责指明ip和端口。原型如下</p>
-<pre><code>#include&lt;sys/socket.h&gt;
-struct sockaddr &#123;  
-    sa_family_t sin_family;//地址族
-    char sa_data[14]; //14字节，包含套接字中的目标地址和端口              
+<pre><code class="cpp">    #include&lt;sys/socket.h&gt;
+    struct sockaddr &#123;  
+        sa_family_t sin_family;//地址族
+        char sa_data[14]; //14字节，包含套接字中的目标地址和端口              
+　　 &#125;; 
 </code></pre>
-<p>　　 };<br>由于他是一个位操作,即存放了4字节的ip地址，2字节的端口，由于我们想获得ip和端口就得对sa_data进行位操作，显得比较繁琐，所以我们一般会用<strong>sockeraddr_in</strong>来代替他，</p>
-<pre><code>#include&lt;netinet/in.h&gt;
-#include&lt;arpa/inet.h&gt;
-struct sockaddr_in&#123;
-    sa_family_t sin_family;
-    uint16_t    sin_port;
-    struct      sin_addr;
-    char        sin_zero[8];
-&#125;
+<p>由于他是一个位操作,即存放了4字节的ip地址，2字节的端口，由于我们想获得ip和端口就得对sa_data进行位操作，显得比较繁琐，所以我们一般会用<strong>sockeraddr_in</strong>来代替他，</p>
+<pre><code class="cpp">    #include&lt;netinet/in.h&gt;
+    #include&lt;arpa/inet.h&gt;
+    struct sockaddr_in&#123;
+        sa_family_t sin_family;
+        uint16_t    sin_port;
+        struct      sin_addr;
+        char        sin_zero[8];
+    &#125;
 </code></pre>
 <p>由于是对sockaddr的补充，因此他们可以直接强行转化，所以在后面的使用中我们将其转化为一个sockaddr的指针类型。<br>我们这里直接就用实例来告知大家怎么使用</p>
-<pre><code>sockaddr_in addr;
-addr.sin_family = AF_INET;
-//转化端口号
-addr.sin_port = htons(9999);
-//意思是所有的ip地址都监听该端口
-addr.sin_addr.s_addr = INADDR_ANY;
-if(bind(listenfd,(const sockaddr*)&amp;addr,sizeof(addr)) == -1)&#123;
-    std::cout &lt;&lt; &quot;Failed : bind&quot; &lt;&lt; std::endl;
-    return 0;
-&#125;
-</code></pre>
-<p>首先是声明了变量，再设置地址族<del>我不理解为什么前面socket已经声明过了这里还要声明一次</del>。然后设置端口号。这里端口号不能直接输入数字，而是需要用函数<a target="_blank" rel="noopener" href="https://www.cnblogs.com/rexienk/p/4858710.html">htons</a>转化一下。<br>最后我们需要设置我们所监听的ip地址，输入常量INADDR_ANY 意思是监听所有的IP地址。<br>最后我们对listenfd进行绑定。</p>
-<h2 id="listen"><a href="#listen" class="headerlink" title="listen"></a>listen</h2><p>这一步就简单了许多，如果说前面的bind是监听，那只有调用了listen以后，客户端才能真正的连接上我们的服务端。</p>
-<pre><code>int listen(int sockfd, int backlog);
-</code></pre>
-<p>第一个参数是我们的listenfd，第二个参数是对应的socket的可以排队的最大连接数。这里的最大连接数并不是我们socket的连接成功的数量，而是正在连接中的数量，即三次握手还没成功的数量。当成功监听了以后返回0，失败了则返回-1并设置errno。</p>
-<pre><code>if(listen(listenfd,5)== -1)&#123;
-    std::cout &lt;&lt; &quot;Failed : listen&quot;&lt;&lt;std::endl;
-    return 0;
-&#125;
-</code></pre>
-<h2 id="accept"><a href="#accept" class="headerlink" title="accept"></a>accept</h2><p>但我们的客户端发起连接的时候我们怎么才能建立连接呢。答案便是调用accept函数。</p>
-<pre><code>int accept(int sockfd, struct sockaddr *addr, socklen_t *addrlen);
-</code></pre>
-<p>第一个参数sockfd为服务器的socket描述字，第二个参数addr为指向struct sockaddr*的指针，用于返回客户端的协议地址，第三个参数addrlen为协议地址的长度。其中比较特殊的参数是第二个参数，它用于存储客户端的临时信息。而第三个参数，只能说不知道干嘛用的<a target="_blank" rel="noopener" href="https://www.coder.work/article/2111680">这里</a>也就贴一个连接给大家把，我也就bb了。当连接成功后，便会创建一个新的socket文件，并返回他的文件操作符，这由于是第四个文件，因此这里的操作符最小都为4.</p>
-<h2 id="send-与-recv"><a href="#send-与-recv" class="headerlink" title="send 与 recv"></a>send 与 recv</h2><p>既然socket也是文件，那肯定就可以用read和write了，但是不够吊，所以我们还是用帮我封装好的 send 与 recv函数负责网络中的信息传输与接收</p>
-<pre><code>ssize_t recv_(int sockfd, void *buf, size_t len, int flags);
-ssize_t send(int sockfd, const void *buf, size_t len, int flags);
-</code></pre>
-<p><del>cpp为什么能加这么多奇怪的类型。。。</del> 首先是参数，这里的第一个参数不再是我们的监听socket的文件操作符，而是与客户端通信的操作符，即accept的返回值，第二个参数为任意类型的缓冲区，一般来说是一个char类型的数组。第三个参数len则是期望发送的数量和可接收数量。至于最后的第四个参数一般设置为0.其他的值可以自己百度。</p>
-<p>那么他们的返回值是什么呢。是实际上的接收数和发送数。</p>
-<h2 id="Close"><a href="#Close" class="headerlink" title="Close"></a>Close</h2><p>对于一个不再使用了的socket我们可以使用close函数来关闭它。或者说是让他的引用数减一，只有当一个文件操作符的引用变成0了以后才会真正的被关闭。<br>完整代码如下</p>
-<pre><code>#include &lt;sys/socket.h&gt;
-#include &lt;iostream&gt;
-#include &lt;sys/types.h&gt;
-#include &lt;netinet/in.h&gt;
-#include &lt;arpa/inet.h&gt;
-#include &lt;cstring&gt;
-#include &lt;unistd.h&gt;
-#include &lt;vector&gt;
-int main()&#123;
-    std::cout &lt;&lt; &quot;Loading--------------&quot;&lt;&lt; std::endl;
-
-    int listenfd = socket(AF_INET,SOCK_STREAM,0);
-    if(listenfd == -1)&#123;
-        std::cout&lt;&lt;&quot;Failed : listen&quot; &lt;&lt; std::endl;
-        return 0;
-    &#125;
-
-    //bind
-    sockaddr_in addr;
+<pre><code class="cpp">    sockaddr_in addr;
     addr.sin_family = AF_INET;
     //转化端口号
     addr.sin_port = htons(9999);
@@ -218,35 +169,85 @@ int main()&#123;
         std::cout &lt;&lt; &quot;Failed : bind&quot; &lt;&lt; std::endl;
         return 0;
     &#125;
-
-    //listen
-    int max_fd = 5;
-    if(listen(listenfd,5)== -1)&#123;
+</code></pre>
+<p>首先是声明了变量，再设置地址族<del>我不理解为什么前面socket已经声明过了这里还要声明一次</del>。然后设置端口号。这里端口号不能直接输入数字，而是需要用函数<a target="_blank" rel="noopener" href="https://www.cnblogs.com/rexienk/p/4858710.html">htons</a>转化一下。<br>最后我们需要设置我们所监听的ip地址，输入常量INADDR_ANY 意思是监听所有的IP地址。<br>最后我们对listenfd进行绑定。</p>
+<h2 id="listen"><a href="#listen" class="headerlink" title="listen"></a>listen</h2><p>这一步就简单了许多，如果说前面的bind是监听，那只有调用了listen以后，客户端才能真正的连接上我们的服务端。</p>
+<pre><code>int listen(int sockfd, int backlog);
+</code></pre>
+<p>第一个参数是我们的listenfd，第二个参数是对应的socket的可以排队的最大连接数。这里的最大连接数并不是我们socket的连接成功的数量，而是正在连接中的数量，即三次握手还没成功的数量。当成功监听了以后返回0，失败了则返回-1并设置errno。</p>
+<pre><code class="cpp">    if(listen(listenfd,5)== -1)&#123;
         std::cout &lt;&lt; &quot;Failed : listen&quot;&lt;&lt;std::endl;
         return 0;
     &#125;
-    //accept
-    int clientid;
-    char clientIP[INET_ADDRSTRLEN] = &quot;&quot;;
-    sockaddr_in    clientAddr;
-    socklen_t      clientAddrLen = sizeof(clientAddr);
+</code></pre>
+<h2 id="accept"><a href="#accept" class="headerlink" title="accept"></a>accept</h2><p>但我们的客户端发起连接的时候我们怎么才能建立连接呢。答案便是调用accept函数。</p>
+<pre><code class="cpp">    int accept(int sockfd, struct sockaddr *addr, socklen_t *addrlen);
+</code></pre>
+<p>第一个参数sockfd为服务器的socket描述字，第二个参数addr为指向struct sockaddr*的指针，用于返回客户端的协议地址，第三个参数addrlen为协议地址的长度。其中比较特殊的参数是第二个参数，它用于存储客户端的临时信息。而第三个参数，只能说不知道干嘛用的<a target="_blank" rel="noopener" href="https://www.coder.work/article/2111680">这里</a>也就贴一个连接给大家把，我也就bb了。当连接成功后，便会创建一个新的socket文件，并返回他的文件操作符，这由于是第四个文件，因此这里的操作符最小都为4.</p>
+<h2 id="send-与-recv"><a href="#send-与-recv" class="headerlink" title="send 与 recv"></a>send 与 recv</h2><p>既然socket也是文件，那肯定就可以用read和write了，但是不够吊，所以我们还是用帮我封装好的 send 与 recv函数负责网络中的信息传输与接收</p>
+<pre><code class="cpp">    ssize_t recv_(int sockfd, void *buf, size_t len, int flags);
+    ssize_t send(int sockfd, const void *buf, size_t len, int flags);
+</code></pre>
+<p><del>cpp为什么能加这么多奇怪的类型。。。</del> 首先是参数，这里的第一个参数不再是我们的监听socket的文件操作符，而是与客户端通信的操作符，即accept的返回值，第二个参数为任意类型的缓冲区，一般来说是一个char类型的数组。第三个参数len则是期望发送的数量和可接收数量。至于最后的第四个参数一般设置为0.其他的值可以自己百度。</p>
+<p>那么他们的返回值是什么呢。是实际上的接收数和发送数。</p>
+<h2 id="Close"><a href="#Close" class="headerlink" title="Close"></a>Close</h2><p>对于一个不再使用了的socket我们可以使用close函数来关闭它。或者说是让他的引用数减一，只有当一个文件操作符的引用变成0了以后才会真正的被关闭。<br>完整代码如下</p>
+<pre><code class="cpp">    #include &lt;sys/socket.h&gt;
+    #include &lt;iostream&gt;
+    #include &lt;sys/types.h&gt;
+    #include &lt;netinet/in.h&gt;
+    #include &lt;arpa/inet.h&gt;
+    #include &lt;cstring&gt;
+    #include &lt;unistd.h&gt;
+    #include &lt;vector&gt;
+    int main()&#123;
+        std::cout &lt;&lt; &quot;Loading--------------&quot;&lt;&lt; std::endl;
 
-    char buff[1024]
-    memset(buff,0,sizeof(buff));//将buff初始化
+        int listenfd = socket(AF_INET,SOCK_STREAM,0);
+        if(listenfd == -1)&#123;
+            std::cout&lt;&lt;&quot;Failed : listen&quot; &lt;&lt; std::endl;
+            return 0;
+        &#125;
 
-    clientid = accept(listenfd,(sockaddr*)&amp;clientAddr,&amp;clientAddrLen);
-    int num = recv(clientid,buff,sizeof(buff)-1,0);
-    int num2 = send(clientid,buff,num,0);
-    close(clientid);
-    close(listenfd);
-    return 0;
-&#125;
+        //bind
+        sockaddr_in addr;
+        addr.sin_family = AF_INET;
+        //转化端口号
+        addr.sin_port = htons(9999);
+        //意思是所有的ip地址都监听该端口
+        addr.sin_addr.s_addr = INADDR_ANY;
+        if(bind(listenfd,(const sockaddr*)&amp;addr,sizeof(addr)) == -1)&#123;
+            std::cout &lt;&lt; &quot;Failed : bind&quot; &lt;&lt; std::endl;
+            return 0;
+        &#125;
+    
+        //listen
+        int max_fd = 5;
+        if(listen(listenfd,5)== -1)&#123;
+            std::cout &lt;&lt; &quot;Failed : listen&quot;&lt;&lt;std::endl;
+            return 0;
+        &#125;
+        //accept
+        int clientid;
+        char clientIP[INET_ADDRSTRLEN] = &quot;&quot;;
+        sockaddr_in    clientAddr;
+        socklen_t      clientAddrLen = sizeof(clientAddr);
+
+        char buff[1024]
+        memset(buff,0,sizeof(buff));//将buff初始化
+
+        clientid = accept(listenfd,(sockaddr*)&amp;clientAddr,&amp;clientAddrLen);
+        int num = recv(clientid,buff,sizeof(buff)-1,0);
+        int num2 = send(clientid,buff,num,0);
+        close(clientid);
+        close(listenfd);
+        return 0;
+    &#125;
 </code></pre>
 <h2 id="IP地址转化函数"><a href="#IP地址转化函数" class="headerlink" title="IP地址转化函数"></a>IP地址转化函数</h2><p>在我们收到了一个连接以后，我们会可能需要转化他的ip地址。但是传输过来的值阅读性比较差，我们可以利用以下几个函数来进行转化</p>
-<pre><code>#include &lt;arpa/inet.h&gt;
-in_addr inet_addr(const char* strptr)
-int inet_aton(const char* cp,struct in_addr* inp);
-char* inet_ntoa(struct in_addr in);
+<pre><code class="cpp">    #include &lt;arpa/inet.h&gt;
+    in_addr inet_addr(const char* strptr)
+    int inet_aton(const char* cp,struct in_addr* inp);
+    char* inet_ntoa(struct in_addr in);
 </code></pre>
 <p>inet_addr 函数将点分十进制的字符串变为用网络字节序列整数表示的地址</p>
 <p>inet_aton 的功能与inet_addr相同，只不过是将转化结果存储到指针inp所指向的地质结构中</p>

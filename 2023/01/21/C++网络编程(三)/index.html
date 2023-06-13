@@ -1,0 +1,203 @@
+
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>  C++网络编程(三) |    DickCat.</title>
+  <meta name="description" content="A minimalist theme for hexo.">
+  <!-- 标签页图标 -->
+  
+
+  <!-- 图标库 -->
+  <link href="https://cdn.jsdelivr.net/npm/remixicon@2.2.0/fonts/remixicon.css" rel="stylesheet">
+  <!-- 动画库 -->
+  
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/fushaolei/cdn-white@1.0/css/animate.css"/>
+  
+  <!-- css文件 -->
+  
+<link rel="stylesheet" href="/css/white.css">
+
+  <!-- 代码高亮 -->
+  
+    
+      
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@10.1.1/styles/github.css">
+
+    
+  
+<meta name="generator" content="Hexo 6.3.0"></head>
+
+
+<body>
+
+<div class="menu-outer">
+    <div class="menu-inner">
+      <div class="menu-site-name  animate__animated  animate__fadeInUp">
+        <a href="/">
+          DickCat.
+        </a>
+        
+      </div>
+      <div class="menu-group">
+        <ul class="menu-ul">
+        
+          <a href="/" class="nav-link">
+            <li class="menu-li  animate__animated  animate__fadeInUp">
+              没啥用的主页
+            </li>
+          </a>
+        
+          <a href="/archives" class="nav-link">
+            <li class="menu-li  animate__animated  animate__fadeInUp">
+              学习杂记
+            </li>
+          </a>
+        
+        
+        
+          <li class="menu-li animate__animated  animate__fadeInUp" id="mobile-menu">
+            <i class="ri-menu-line"></i>
+          </li>
+        
+        </ul>
+
+      </div>
+
+    </div>
+</div>
+<div id="mobile-main" class="animate__animated  animate__fadeIn">
+  <div class="mobile-menu-inner">
+    <div class="mobile-menu-site-name animate__animated  animate__fadeInUp">
+      <a href="/">
+        DickCat.
+      </a>
+    </div>
+    <div class="mobile-menu-group" id="mobile-close">
+      <i class="ri-close-line"></i>
+    </div>
+
+  </div>
+
+  <div class="mobile-menu-div">
+  
+    <a href="/" class="mobile-nav-link">
+      <div class="mobile-menu-child animate__animated  animate__fadeInUp">
+        <span>没啥用的主页</span>
+      </div>
+    </a>
+  
+    <a href="/archives" class="mobile-nav-link">
+      <div class="mobile-menu-child animate__animated  animate__fadeInUp">
+        <span>学习杂记</span>
+      </div>
+    </a>
+  
+  
+  </div>
+
+
+</div>
+
+<div class="body-outer">
+  <div class="body-inner">
+    
+<article class="post-inner">
+  <div class="post-content-outer">
+    <div class="post-intro">
+      <div class="post-title animate__animated  animate__fadeInUp">C++网络编程(三)</div>
+      <div class="meta-intro animate__animated  animate__fadeInUp">Jan 21 2023</div>
+      
+    </div>
+    <div class="post-content-inner">
+      <div class="post-content-inner-space">
+
+      </div>
+      <div class="post-content-main animate__animated  animate__fadeInUp">
+        <!-- top型目录 -->
+        
+        <h2 id="Pthread"><a href="#Pthread" class="headerlink" title="Pthread"></a>Pthread</h2><p>在linux下，进程的创建是用的fork函数，他会将我们的数据给完整的复制一份过去，由我们创建出来的进程也被称之为子进程，而linux下的线程则跟进程的差别不大，线程会共享程序的各种资源，而进程是复制一份，因此后面的知识点也适用于进程的情况。</p>
+<h3 id="创建"><a href="#创建" class="headerlink" title="创建"></a>创建</h3><p>我们利用函数 <strong>pthread_create</strong>函数来创建一个线程。他的原型如下</p>
+<pre><code>int pthread_create(pthread_t *thread, const pthread_attr_t *attr, void *(*start_routine)(void *), void *arg);
+</code></pre>
+<p>pthread_t *thread 用于缓存新线程的 pid，即我们的线程id，是一个唯一值</p>
+<p>const pthread_attr_t *attr 制定新线程的 attr ，如果为 NULL，那么将使用默认的 attr。该参数用于控制我们的线程属性。</p>
+<p>start_routine 是新线程即将进入的执行函数。需要注意的是该函数的返回值必须为 void<em>，且参数也得为void</em></p>
+<p>arg 向新线程执行的函数传递的参数</p>
+<p>利用上面的函数我们就可以创建出一个线程了。成功的时候会返回0，失败则会返回错误码。</p>
+<h3 id="控制"><a href="#控制" class="headerlink" title="控制"></a>控制</h3><p>多个线程的情况下必然会出现运行顺序不如意的情况，我们可以通过<strong>pthread_join</strong>函数来简单的控制线程的阻塞。</p>
+<pre><code>int pthread_join(pthread_t thread, void **retval);
+</code></pre>
+<p>thread 是某个线程的 pid .即我们执行的线程需要等待的线程的id</p>
+<p>retval 用于获取线程 start_routine 的返回值.</p>
+<h3 id="定制参数（attr）"><a href="#定制参数（attr）" class="headerlink" title="定制参数（attr）"></a>定制参数（attr）</h3><h2 id="互斥量（mutex）"><a href="#互斥量（mutex）" class="headerlink" title="互斥量（mutex）"></a>互斥量（mutex）</h2><h2 id="线程池（threadpool）"><a href="#线程池（threadpool）" class="headerlink" title="线程池（threadpool）"></a>线程池（threadpool）</h2><p>在Linux高性能服务器编程中，他提供的线程池逻辑如下<br>1.实例化threadpool</p>
+<h2 id="高性能模式"><a href="#高性能模式" class="headerlink" title="高性能模式"></a>高性能模式</h2>
+        <!-- 分类文章 -->
+        
+      </div>
+      <div class="post-content-inner-space">
+        
+          <div class="space-toc-main animate__animated  animate__fadeInUp">
+            <ol class="space-toc"><li class="space-toc-item space-toc-level-2"><a class="space-toc-link" href="#Pthread"><span class="space-toc-text">Pthread</span></a></li><li class="space-toc-item space-toc-level-2"><a class="space-toc-link" href="#%E4%BA%92%E6%96%A5%E9%87%8F%EF%BC%88mutex%EF%BC%89"><span class="space-toc-text">互斥量（mutex）</span></a></li><li class="space-toc-item space-toc-level-2"><a class="space-toc-link" href="#%E7%BA%BF%E7%A8%8B%E6%B1%A0%EF%BC%88threadpool%EF%BC%89"><span class="space-toc-text">线程池（threadpool）</span></a></li><li class="space-toc-item space-toc-level-2"><a class="space-toc-link" href="#%E9%AB%98%E6%80%A7%E8%83%BD%E6%A8%A1%E5%BC%8F"><span class="space-toc-text">高性能模式</span></a></li></ol>
+           </div>
+        
+      </div>
+   </div>
+    <!-- 评论 -->
+    
+  </div>
+</article>
+  </div>
+</div>
+
+
+
+<!-- 如果是home模式的话，不在首页就显示footer，如果不是home模式的话 所有都显示footer -->
+
+  <div class="footer-outer animate__animated  animate__fadeInUp">
+    <div class="footer-inner">
+    <div class="footer-text">
+    <p>My Blog</p>
+
+    </div>
+    <div class="footer-contact">
+    <ul class="footer-ul">
+        
+        <li class="footer-li">
+            <a href="https://github.com/shuangrenxu123/GameCode" target="_blank">
+                <i class="ri-github-line"></i>
+            </a>
+        </li>
+        
+        <li class="footer-li">
+            <a href="mailto:1919802366@qq.com" target="_blank">
+                <i class="ri-mail-line"></i>
+            </a>
+        </li>
+        
+    </ul>
+    </div>
+    </div>
+</div>
+
+
+
+
+
+
+<script src="/js/white.js"></script>
+
+
+
+    
+      
+<script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@9.18.1/build/highlight.min.js"></script>
+
+      <script>hljs.initHighlightingOnLoad();</script>
+    
+
+</body>
+</html>
