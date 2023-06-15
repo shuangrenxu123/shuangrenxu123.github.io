@@ -656,9 +656,80 @@ public partial class ChangeWaveCubesMeshAndMaterialSystem : SystemBase
 &#125;
 </code></pre>
 <h2 id="关于在-MonoBehaviour下来创建Entity"><a href="#关于在-MonoBehaviour下来创建Entity" class="headerlink" title="关于在 MonoBehaviour下来创建Entity"></a>关于在 MonoBehaviour下来创建Entity</h2><p>大致操作为我们可以通过World来获得相应的world，然后通过world里面的EntityManger来创建一个空的Entity。再来给他添加相应的组件</p>
-<h2 id="Physics"><a href="#Physics" class="headerlink" title="Physics"></a>Physics</h2><h2 id="相关链接"><a href="#相关链接" class="headerlink" title="相关链接"></a>相关链接</h2><p><a target="_blank" rel="noopener" href="https://github.com/Unity-Technologies/EntityComponentSystemSamples">Unity官方示例</a></p>
+<h2 id="Physics"><a href="#Physics" class="headerlink" title="Physics"></a>Physics</h2><p>与原版没啥区别，将物体添加上相关的Collider组件与rigidbody组件在拖拽到subscence下即可。在unity的物理模拟一帧中大约做了以下的事情。</p>
+<p>
+        <span class="lazyload-img-span">
+        <img   
+           data-src="/Image/Dots/physics.png" >
+        </sapn>
+      </p>
+<p>而在我们的Physics包中，他是有以下的几个Systemgroup来完成的，我们需要了解他每一步所做的事情，才方便后面我们自己来控制物理行为</p>
+<pre><code>FixedStepSimulationSystemGroup
+    PhysicsSystemGroup
+        PhysicsInitializeGroup   //该system用于初始化所需的物理数据
+        PhysicsSimulationGroup
+            PhysicsCreateBodyPairsGroup   //查找AABB重叠部分
+            PhysicsCreateContactsGroup    //创建接触信息
+            PhysicsCreateJacobiansGroup   //基于接触信息来创建矩阵信息
+            PhysicsSolveAndIntegrateGroup //计算矩阵结果
+        ExportPhysicsWorld       // 应用得到的数据
+</code></pre>
+<p>对于我们自己的物理操作就应放在PhysicsSimulationGroup之前，切记不要放在ExportPhysicsWorld之后，这样他才能并入到各种计算之中.</p>
+<p>Dots为我们提供了一个Aspect——RigidbodyAspect。它提供了一些方便我们操作Entity物理的操作，比如给一个物体一个角动量。</p>
+<pre><code class="c#">[BurstCompile]
+public partial struct ApplyImpulseJob : IJobEntity
+&#123;
+    public float DeltaTime;
+    public float3 ImpulseDir;
+
+    public void Execute(RigidBodyAspect rigidBodyAspect)
+    &#123;
+        float3 impulse = -ImpulseDir;
+        impulse *= DeltaTime;
+        rigidBodyAspect.ApplyAngularImpulseWorldSpace(impulse);
+    &#125;
+&#125;
+[BurstCompile]
+[UpdateInGroup(typeof(FixedStepSimulationSystemGroup))]
+[UpdateBefore(typeof(PhysicsSystemGroup))]
+public partial struct ApplyImpluseSystem : ISystem
+&#123;
+    [BurstCompile]
+    public void OnCreate(ref SystemState state)
+    &#123;
+        state.RequireForUpdate&lt;GeneratorData&gt;();
+    &#125;
+
+    [BurstCompile]
+    public void OnUpdate(ref SystemState state)
+    &#123;
+        SimulationSingleton simulation = SystemAPI.GetSingleton&lt;SimulationSingleton&gt;();
+        if (simulation.Type == SimulationType.NoPhysics)
+            return;
+        TornadoComponent tornado = SystemAPI.GetSingleton&lt;TornadoComponent&gt;();
+
+        state.Dependency = new ApplyImpulseJob()
+        &#123;
+            DeltaTime = SystemAPI.Time.DeltaTime,
+            ImpulseDir = tornado.MoveDirection,
+        &#125;.Schedule(state.Dependency);
+    &#125;
+&#125;
+</code></pre>
+<p>可以达到一个自转 与其他物体碰撞从而使物体散的更开的效果。</p>
+<p>其他例子待补充</p>
+<h3 id="对于物体的交互"><a href="#对于物体的交互" class="headerlink" title="对于物体的交互"></a>对于物体的交互</h3><h3 id="碰撞查询"><a href="#碰撞查询" class="headerlink" title="碰撞查询"></a>碰撞查询</h3><p>大致分为以下几种类型</p>
+<ol>
+<li>Raycast : 射线检测，获得射线方向上所有或最近的点</li>
+<li>ColliderCast ：碰撞体射线检测</li>
+<li>ColliderDistance ：碰撞体距离检测，在指定范围内找出与其他碰撞体最近的点</li>
+<li>PointDistance ：在半径内找出最近的点</li>
+<li>Overlap Query : 找出碰撞体相重合的实体</li>
+</ol>
+<h2 id="相关链接"><a href="#相关链接" class="headerlink" title="相关链接"></a>相关链接</h2><p><a target="_blank" rel="noopener" href="https://github.com/Unity-Technologies/EntityComponentSystemSamples">Unity官方示例</a></p>
 <p><a target="_blank" rel="noopener" href="https://www.bilibili.com/video/BV1b84y1r7vK/?spm_id_from=333.788&vd_source=4cb2ec33454a41bb09e521e44c931372">B站视频教程</a></p>
-<p><a target="_blank" rel="noopener" href="https://docs.unity3d.com/Packages/com.unity.entities@1.0/manual/index.html">Dots1.0相关API</a></p>
+<p><a target="_blank" rel="noopener" href="https://docs.unity3d.com/Packages/com.unity.entities@1.0/manual/index.html">Dots1.0 EntityAPI</a></p>
+<p><a target="_blank" rel="noopener" href="https://docs.unity3d.com/Packages/com.unity.physics@1.0/manual/concepts-simulation-set-up.html">Dots1.0 PhysicsAPI</a></p>
 <p><a target="_blank" rel="noopener" href="https://github.com/lwwhb/RoadToDotsTutorials/tree/main/Assets/EntitiesTutorials">B站教程Git仓库</a></p>
 <p><a target="_blank" rel="noopener" href="https://github.com/lwwhb/DOTS-training-samples/tree/master">以前版本的ECS的例子</a></p>
 
