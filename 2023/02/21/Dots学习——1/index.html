@@ -157,6 +157,13 @@ transform.ValueRW.postion.y = 1;
         </sapn>
       </p>
 <p>Structural Change：所有需要导致需要重新组织内存块或内存块内容的操作都被称之为structural Change，比如我们去给某个Entity删除或添加Component。又比如我们将某个Entity给移动到另一个Chunk块中等一系列操作内存的行为，添加或删除Entity也在其中</p>
+<h3 id="1-0-10补充"><a href="#1-0-10补充" class="headerlink" title="1.0.10补充"></a>1.0.10补充</h3><p>在Bakder下新增加了一个<strong>TransformUsageFlags</strong>类，它用于将我们自动转化为Entity时来筛选Component。且在后面的GetEntity方法中都需要该参数。</p>
+<p>无论是将一个Prefab转化为Entity，还是将Gameobject Baker成Entity都需要参数</p>
+<pre><code class="c#">var entity = GetEntity(TransformUsageFlags.Dynamic);
+var entity2 = GetEntity(prefab,TransformUsageFlags.None);
+</code></pre>
+<p>当参数为 None时意味着我们不需要转化任何的Component上去，又比如我们有一个房子GameObject，他是一个静态物体，因此TransformUsageFlags参数为Renderable。这说明它只需要一个LocalToWorld组件，但如果他还有个子物体窗户，这个窗户可能需要打开等。那么他的参数就应该为 Dynamic，这样就会为它添加上LocalTransform与LocalToWorld俩组件了，</p>
+<p>总之该参数可以帮助我们在Bake时减少消耗。</p>
 <h2 id="Entity-包"><a href="#Entity-包" class="headerlink" title="Entity 包"></a>Entity 包</h2><h3 id="Compnent"><a href="#Compnent" class="headerlink" title="Compnent"></a>Compnent</h3><p>根据内存类型来划分大约分为 <strong>非托管Compnent</strong>与<strong>托管Compnent</strong>.对于其他的划分的话还分为了很多的类型，具体可以去文档中查看，比如单例版本的Compnent，按照访问来划分的有按照Entity访问的，按Chunk访问的等等,我们会在后面来介绍这些Component</p>
 <h4 id="非托管Compnent"><a href="#非托管Compnent" class="headerlink" title="非托管Compnent"></a>非托管Compnent</h4><p>用于存储一些常见的数据类型，具体的存储数据类型可以去给出的链接中查看，他可以存储<a target="_blank" rel="noopener" href="https://learn.microsoft.com/en-us/dotnet/framework/interop/blittable-and-non-blittable-types">Blittable</a>类型，一般来说，非托管类型他们的大小或者内存是不变的。</p>
 <h4 id="托管Compnent"><a href="#托管Compnent" class="headerlink" title="托管Compnent"></a>托管Compnent</h4><p>托管的Compnent可以存储任何数据，但缺点是无法通过Jobs进行访问。也无法用Brust编译，因此他与非托管Compnent相比效率较低。 </p>
@@ -205,7 +212,7 @@ public void OnUpdate(ref SystemState state)
 <p>同时我们也可以在Execute的参数中来筛选出想要的物体，在上面的例子中便是我们会挑选出带有三个组件的物体。为了避免拷贝所带来的性能影响，我们在Execute的函数中的参数上会加上<strong>in</strong>关键字来避免消耗。我们还可以通过Entity参数来获得该entity</p>
 <pre><code class="c#">public void Execute(Entity entity);
 </code></pre>
-<h4 id="IJobChunk"><a href="#IJobChunk" class="headerlink" title="IJobChunk"></a>IJobChunk</h4><p>待补充</p>
+<h4 id="IJobChunk"><a href="#IJobChunk" class="headerlink" title="IJobChunk"></a>IJobChunk</h4><p>他会遍历ArcheType Chunk，为每一个Chunk执行一次Execute。一般用于不需要遍历每个Entity的情况。比较少用。</p>
 <h3 id="IAspect"><a href="#IAspect" class="headerlink" title="IAspect"></a>IAspect</h3><p>Dots中给我们提供了一个新的接口，它可以将我们的Component给进行一个更高级的封装，使其更符合我们oop的写法，用法如下</p>
 <pre><code class="c#">readonly partial struct RotationAndMoveAspects : IAspect
 &#123;
@@ -675,7 +682,8 @@ public partial class ChangeWaveCubesMeshAndMaterialSystem : SystemBase
         ExportPhysicsWorld       // 应用得到的数据
 </code></pre>
 <p>对于我们自己的物理操作就应放在PhysicsSimulationGroup之前，切记不要放在ExportPhysicsWorld之后，这样他才能并入到各种计算之中.</p>
-<p>Dots为我们提供了一个Aspect——RigidbodyAspect。它提供了一些方便我们操作Entity物理的操作，比如给一个物体一个角动量。</p>
+<h3 id="对物体属性的修改"><a href="#对物体属性的修改" class="headerlink" title="对物体属性的修改"></a>对物体属性的修改</h3><p>Dots为我们提供了一个Aspect——RigidbodyAspect。它提供了一些方便我们操作Entity物理的操作，比如给一个物体一个角动量。RigidbodyAspect的数据都属于Ecs数据，因此对他的操作应该是在物理模拟（PhysicsSystemSimulationSystemGroup之前），<a target="_blank" rel="noopener" href="https://docs.unity3d.com/Packages/com.unity.physics@1.0/manual/concepts-data.html">Rigidbody变成的相关Components</a></p>
+<p><a target="_blank" rel="noopener" href="https://docs.unity3d.com/Packages/com.unity.physics@1.0/manual/attract-body.html">官方物体跟随案例</a></p>
 <pre><code class="c#">[BurstCompile]
 public partial struct ApplyImpulseJob : IJobEntity
 &#123;
@@ -717,8 +725,58 @@ public partial struct ApplyImpluseSystem : ISystem
 &#125;
 </code></pre>
 <p>可以达到一个自转 与其他物体碰撞从而使物体散的更开的效果。</p>
-<p>其他例子待补充</p>
-<h3 id="对于物体的交互"><a href="#对于物体的交互" class="headerlink" title="对于物体的交互"></a>对于物体的交互</h3><h3 id="碰撞查询"><a href="#碰撞查询" class="headerlink" title="碰撞查询"></a>碰撞查询</h3><p>大致分为以下几种类型</p>
+<h3 id="对物理流程的修改"><a href="#对物理流程的修改" class="headerlink" title="对物理流程的修改"></a>对物理流程的修改</h3><pre><code class="c#">[BurstCompile]
+//该Job是循环访问可能重叠体,pair
+public struct DisableDynamicDynamicPairsJob : IBodyPairsJob
+&#123;
+    public int NumDynamicBodies;
+    public void Execute(ref ModifiableBodyPair pair)
+    &#123;
+        //如果两个物体都有rigidbody，边禁用该次碰撞检测。
+        bool isDynamic = pair.BodyIndexA &lt; NumDynamicBodies &amp;&amp; pair.BodyIndexB &lt; NumDynamicBodies;
+
+        if(isDynamic)
+        &#123;
+            pair.Disable();
+        &#125;
+    &#125;
+&#125;
+[BurstCompile]
+[UpdateInGroup(typeof(PhysicsSimulationGroup))]
+[UpdateAfter(typeof(PhysicsCreateBodyPairsGroup))]
+[UpdateBefore(typeof(PhysicsCreateContactsGroup))]
+public partial struct DisableDynamicDynamicPairsSystem : ISystem
+&#123;
+    [BurstCompile]
+    public void OnCreate(ref SystemState state)
+    &#123;
+        state.RequireForUpdate&lt;SimulationSingleton&gt;();
+        state.RequireForUpdate&lt;PhysicsWorldSingleton&gt;();
+    &#125;
+
+    [BurstCompile]
+    public void OnUpdate(ref SystemState state)
+    &#123;
+        SimulationSingleton simulation = SystemAPI.GetSingleton&lt;SimulationSingleton&gt;();
+
+        if(simulation.Type == SimulationType.NoPhysics)
+        &#123;
+            return;
+        &#125;
+
+        var physicsWorld = SystemAPI.GetSingletonRW&lt;PhysicsWorldSingleton&gt;().ValueRW.PhysicsWorld;
+
+        state.Dependency = new DisableDynamicDynamicPairsJob()
+        &#123;
+            //获得该PhysicsWorld下动态刚体的数量
+            NumDynamicBodies = physicsWorld.NumDynamicBodies,
+        &#125;.Schedule(simulation,ref physicsWorld,state.Dependency);
+    &#125;
+&#125;
+</code></pre>
+<p>PhysicsWorld是一个用于模拟物理相关的系统，我们可以通过他来获得相关的控制，等同于Physics类，里面有投射射线等一系列相关的方法。这个例子中我们介入了物理模拟流程，即获得碰撞信息之后，计算物理信息之前的流程，由于物理模拟的数据都存在于内存之中，我们只能通过相关的方法来修改。</p>
+<p>通过PhysicsWorldSingleton我们还可以获得一个不是单例版本的类。单例版本的可以使我们的jOb不会遇到条件竞争？</p>
+<h3 id="碰撞查询"><a href="#碰撞查询" class="headerlink" title="碰撞查询"></a>碰撞查询</h3><p>大致分为以下几种类型</p>
 <ol>
 <li>Raycast : 射线检测，获得射线方向上所有或最近的点</li>
 <li>ColliderCast ：碰撞体射线检测</li>

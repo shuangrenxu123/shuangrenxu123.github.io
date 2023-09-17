@@ -122,16 +122,78 @@
         <h2 id="决策层"><a href="#决策层" class="headerlink" title="决策层"></a>决策层</h2><h2 id="有限状态机"><a href="#有限状态机" class="headerlink" title="有限状态机"></a>有限状态机</h2><p><a target="_blank" rel="noopener" href="https://gitee.com/hevinci/MotionFramework/tree/master/Assets/MotionFramework/Scripts/Runtime/Engine/Engine.AI/FSM">MotionFramework的例子</a><br><a target="_blank" rel="noopener" href="https://www.bilibili.com/video/BV1zf4y1r7FJ/?spm_id_from=333.337.search-card.all.click">利用状态机做一个敌人AI</a></p>
 <h2 id="分层状态机"><a href="#分层状态机" class="headerlink" title="分层状态机"></a>分层状态机</h2><p><a target="_blank" rel="noopener" href="https://github.com/BrettHuang2019/HFSM_demo.git">下面的HFSM框架demo</a></p>
 <p><a target="_blank" rel="noopener" href="https://github.com/Inspiaaa/UnityHFSM">一个优秀的HFSM框架</a></p>
+<p><a target="_blank" rel="noopener" href="https://github.com/DurkTel/GameAI/tree/main">上面HFSM的简化版本</a></p>
 <p><a target="_blank" rel="noopener" href="http://www.aisharing.com/archives/393">分层状态机介绍</a></p>
-<h2 id="行为树"><a href="#行为树" class="headerlink" title="行为树"></a>行为树</h2><p><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/19890016">Jason-行为树简介</a><br><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/463182588">行为树介绍</a><br><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/620912102">行为树介绍</a></p>
+<h2 id="行为树"><a href="#行为树" class="headerlink" title="行为树"></a>行为树</h2><p><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/19890016">Jason-行为树简介</a></p>
+<p><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/463182588">行为树介绍</a></p>
+<p><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/620912102">行为树介绍</a></p>
 <h3 id="事件驱动"><a href="#事件驱动" class="headerlink" title="事件驱动"></a>事件驱动</h3><p><a target="_blank" rel="noopener" href="https://github.com/meniku/NPBehave">NPBehave——事件驱动的行为树</a></p>
-<h3 id="HTN"><a href="#HTN" class="headerlink" title="HTN"></a>HTN</h3><p>待补充</p>
+<h3 id="HTN"><a href="#HTN" class="headerlink" title="HTN"></a>HTN</h3><p>本文根据以下参考资料以及自己的理解构成<br><a target="_blank" rel="noopener" href="https://www.bilibili.com/video/BV1iG4y1i78Q/?spm_id_from=333.788">games104-GameplayAI篇</a></p>
+<p><a target="_blank" rel="noopener" href="https://www.jianshu.com/p/196962c7ae6a">一篇文章搞懂hierarchical task network(HTN)-通过实例探讨分层任务网络规划（译）</a></p>
+<p><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/579249138">HTN相关文献</a></p>
+<h4 id="HTN的基本组成"><a href="#HTN的基本组成" class="headerlink" title="HTN的基本组成"></a>HTN的基本组成</h4><p>一个HTN大致是由整个AI的核心作用域（domain）,存储AI数据的数据库（worldState），感知器（sensors）,计划组织者（planner），执行者（plan Runner）组成，Plan的单位为Task。而一个HTN的基本流程为先由开发者设定好相关的AI行为，在运行时AI会根据先决条件与对worldState的影响最终得到一条可以执行的行为链，<br>再由我们的PlanRunner来执行<br>
+        <span class="lazyload-img-span">
+        <img   
+           data-src="https://upload-images.jianshu.io/upload_images/15431965-fed9af3f2a36c5eb.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1200/format/webp" >
+        </sapn>
+      </p>
+<h4 id="domain，WorldState"><a href="#domain，WorldState" class="headerlink" title="domain，WorldState"></a>domain，WorldState</h4><p>domain便是我们的整个AI的核心，又或者可以理解为是Task的存储中心。它包含了一个HTN的全部组成，比如worldState等。而worldState则是我们AI对信息的一个存储地。感觉与行为树中的黑板没有区别</p>
+<h4 id="Task"><a href="#Task" class="headerlink" title="Task"></a>Task</h4><p>task是HTN的核心，task主要分为了两种<strong>compound task(复合任务)<strong>与</strong>primitive task(原子任务)<strong>，除此之外还有一种特殊类型</strong>Method(方法)</strong>,primitiveTask是我们最底层的任务，他主要是由<strong>conditions(条件),operator(行为),effect(影响)</strong> 组成，primitiveTask是我们的Plan的组成主题，他是我们的执行主体，一串的primitiveTask则是一个解决方案，我们称之为Method，而CompoundTask则是包含了一系列的method，即拥有多种解决方式，这样看下来就很明了了，primitiveTask是最基础的行为，method则是一种解决办法，而compoundTask是一个目标，compoundTask包含了Method，而method则又包含了compoundTask和primitiveTask（这里是因为我们在某个解决方案下又有目标可以选，比如我们想要治疗自己，治疗自己是一个目标。即是一个compound，他可以选择从背包里面拿出药剂来使用（前提是有），也可以自己坐在地上养伤，这两个分支便是两个method，在使用药剂的method下，我们又有两个分支可以解决，分别是自己合成一个和自己去买一个，这便是两个分支，也就是多出来了两个目标，因为目标是由选择构成的，我们不能说选择下继续选择，而是在为了达到这个目标，我们先去完成他的前置目标，）。compoundtask仅仅是一个method的容器，它代表了某个目标的多个选择集合。算是对分支的封装</p>
+<p>一个HTN的最终组成便应该是CompoundTask-&gt;method-&gt;taskbase(可以为compoundTask或primitiveTask).<br>
+        <span class="lazyload-img-span">
+        <img   
+           data-src="/Image/AI/domain.png" >
+        </sapn>
+      </p>
+<h4 id="Planner-与-PlanRunner"><a href="#Planner-与-PlanRunner" class="headerlink" title="Planner 与 PlanRunner"></a>Planner 与 PlanRunner</h4><p>我们角色的每一个行为与目标设置好了以后保存在Domain中。但在执行中我们是会根据目标的优先级来获得一条primitiveTask的列表，他表示我们真正要执行的行为，而从Domain中找到这条列表的过程便是Plan，找出这条Plan的过程中并不会执行，而是在找完以后确定了下来才交给物体真正的执行，这个执行便是PlanRunner。</p>
+<p>Finding a Plan ： 我们会根据目标的优先级，想一颗树一样递归下来，并最终获得某个Method下的顺序primitiveTask组合。在规划的过程中我们会获得一份WorldState的副本，然后在副本上更改模拟任务的执行，看是否可以达到完成的目的。从根开始，他会去compoundTask中从上往下找可行的Method，进入method后，开始从上往下执行primitiveTask，并通过判断WorldState与添加effect来达到模拟的目的。如果该Method是可行的，那么Planner便会退出，并返回一个primitiveTask的列表交给PlanRunner执行。在普通的情况下我们是通过自己手动来调整优先级的方式来获得一个计划，不考虑使用启发式算法来控制计划的生成</p>
+<p>为了找到更好的计划来应对突发状况，我认为可以采用下面的办法：</p>
+<p>将所有可行的计划排列，当当前的计划无法执行的时候我们会会根据优先级来获得下一个可行的计划，在上面的参考文章中称之为方法遍历记录（MTR），需要明确的是我们的最上层的目标还是同一个，比如攻击敌人的行为中，我们或许可以有丢石头攻击和拿树干攻击敌人，他们之间的前提便是与敌人的距离，当与敌人的距离在近战攻击范围内时，我们便会近战攻击（优先级最高），当在近战攻击范围外远程攻击范围内的时候我们就会丢石头（优先级中间），最后便是跑向敌人。<br>
+        <span class="lazyload-img-span">
+        <img   
+           data-src="https://upload-images.jianshu.io/upload_images/15431965-996df2a3dcf96440.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1200/format/webp" >
+        </sapn>
+      </p>
+<p>如果我们采用了优先级选择的方式来快速更改计划，那需要注意每个物体的条件，他可能会跳过某些method，这时候最好是通过worldState来保证顺序，而不是去修改Method或者primitiveTask。</p>
+<p>在某些情况下我们可能会需要并行执行某些任务，这可以通过更改primitiveTask的行为来做到，但是破坏了封装性，解决办法有很多，比如primitiveTask封装一个行为树，或者是创立两个domain。让他们通过WorldState来决定，比如下半身的domain负责寻路，如果他确定了目标会将worldState某个状态改为True，然后上半身的domain以此为判断来判断相关决策。</p>
+<h4 id="优化相关"><a href="#优化相关" class="headerlink" title="优化相关"></a>优化相关</h4><p>HTN的主要消耗在于Plan 的过程，因此减少Plan是我们的优化的一个大方向，最基础的方式有</p>
+<ol>
+<li>削弱task的Condition，这样可以让我们在执行计划的时候对环境有更大的包容性，不至于因为一小点的变化就去重新计划。 </li>
+<li>如果WorldState的状态没有变化，我们可以继续执行上一次得到的Plan，这样也不用重新计划了，</li>
+<li>对CompoundTask 与Method 也加上Condition，这样可以达到剪枝的目的。</li>
+<li>局部计划：即Planner不完全分解出来一个完整的计划，我们只计划几个步骤。这可以适用于情况多变的局势，因为未来的计划执行的概率不大，因此我们不用计划太远。比如我们的敌人是在我们的攻击范围之外，那AI会先寻路过去再攻击他，寻路过去是个漫长的过程，再路上可能会发生变故，因此它后面的攻击敌人不一定是一定会执行到的（这里只是举例，后续可能会有很多的method，重新去遍历他们会浪费时间）。因此我们可以将寻路与攻击分开。下面的代码是旧计划</li>
+</ol>
+<pre><code>Compound Task [BeTrunkThumper]
+    Method [WsCanSeeEnemy == true]
+        Subtasks [NavigateToEnemy(), DoTrunkSlam()]
+
+Primitive Task [DoTrunkSlam]
+Operator [DoTrunkSlamOperator]
+Compound Task [NavigateToEnemy]
+Method […]
+ Subtasks […]
+</code></pre>
+<p>变成了下面这样，因此我们只计划了寻路，寻路后面的我们可以暂时不关心，只用通过WorldState来将他们给隔离开即可。从而达到了局部计划的目的</p>
+<pre><code>Compound Task [BeTrunkThumper]
+    Method [WsCanSeeEnemy == true, WsEnemyRange &gt; MeleeRange]
+        Subtasks [NavigateToEnemy()]
+    Method [WsCanSeeEnemy == true]
+        Subtasks [DoTrunkSlam()]
+Primitive Task [DoTrunkSlam]
+Operator [DoTrunkSlamOperator]
+Compound Task [NavigateToEnemy]
+Method […]
+ Subtasks […]
+</code></pre>
+<p>总之，对HTN的优化大部分在于对Plan的优化，我们可以通过减少遍历次数来获得优化效果</p>
 <h3 id="GOAP"><a href="#GOAP" class="headerlink" title="GOAP"></a>GOAP</h3><p><a target="_blank" rel="noopener" href="https://github.com/sploreg/goap">一个GOAP的简单框架</a>，该例子中的搜索组合用的还是正向搜索，不太完美符合GOAP的原始定义，不过想要改成反向搜索也很简单。可以自己看需求修改<br><a target="_blank" rel="noopener" href="https://www.bilibili.com/video/BV1ox4y1G7cp/?spm_id_from=333.337.search-card.all.click">GDC生肉版本分享</a></p>
 <p><a target="_blank" rel="noopener" href="https://www.bilibili.com/video/BV1fZ4y1n7RQ/?spm_id_from=333.337.search-card.all.click&vd_source=4cb2ec33454a41bb09e521e44c931372">极度恐慌GOAP的技术分享</a></p>
 <p><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/137987081">烟雨文章</a></p>
 <h2 id="寻路"><a href="#寻路" class="headerlink" title="寻路"></a>寻路</h2><p><a target="_blank" rel="noopener" href="https://blog.csdn.net/weixin_42119432/article/details/112177364">A*寻路的优化</a></p>
-<h2 id="避障"><a href="#避障" class="headerlink" title="避障"></a>避障</h2><h3 id="转向行为-SteeringBehavior"><a href="#转向行为-SteeringBehavior" class="headerlink" title="转向行为(SteeringBehavior)"></a>转向行为(SteeringBehavior)</h3><p><a target="_blank" rel="noopener" href="https://www.bilibili.com/video/BV1wG411H7Ui/?share_source=copy_web&vd_source=ebf97504c7ddfb16d4a8d2186e1af3a0">视频介绍+代码</a><br><a target="_blank" rel="noopener" href="https://www.lfzxb.top/context-steering-behavior-driven-steering-at-the-macro-scale/">一篇熟肉文章</a></p>
-<h3 id="VO避障"><a href="#VO避障" class="headerlink" title="VO避障"></a>VO避障</h3><h3 id="RVO避障"><a href="#RVO避障" class="headerlink" title="RVO避障"></a>RVO避障</h3><h3 id="流场寻路-Flow-Field-Pathfinding"><a href="#流场寻路-Flow-Field-Pathfinding" class="headerlink" title="流场寻路(Flow Field Pathfinding)"></a>流场寻路(Flow Field Pathfinding)</h3><p><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/391459932">流场寻路简介</a></p>
+<h2 id="避障"><a href="#避障" class="headerlink" title="避障"></a>避障</h2><h3 id="转向行为-SteeringBehavior"><a href="#转向行为-SteeringBehavior" class="headerlink" title="转向行为(SteeringBehavior)"></a>转向行为(SteeringBehavior)</h3><p><a target="_blank" rel="noopener" href="https://www.bilibili.com/video/BV1wG411H7Ui/?share_source=copy_web&vd_source=ebf97504c7ddfb16d4a8d2186e1af3a0">视频介绍+代码</a></p>
+<p><a target="_blank" rel="noopener" href="https://www.lfzxb.top/context-steering-behavior-driven-steering-at-the-macro-scale/">一篇熟肉文章</a></p>
+<h3 id="VO避障"><a href="#VO避障" class="headerlink" title="VO避障"></a>VO避障</h3><h3 id="RVO避障"><a href="#RVO避障" class="headerlink" title="RVO避障"></a>RVO避障</h3><h3 id="ORCA避障"><a href="#ORCA避障" class="headerlink" title="ORCA避障"></a>ORCA避障</h3><p><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/396166355">避障算法ORCA整理–精简版</a></p>
+<h3 id="流场寻路-Flow-Field-Pathfinding"><a href="#流场寻路-Flow-Field-Pathfinding" class="headerlink" title="流场寻路(Flow Field Pathfinding)"></a>流场寻路(Flow Field Pathfinding)</h3><p><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/391459932">流场寻路简介</a></p>
 <p><a target="_blank" rel="noopener" href="https://github.com/LifeIsGoodMI/Unity-Flow-Fields">简易的流场寻路框架</a></p>
 <h2 id="Ai的判断"><a href="#Ai的判断" class="headerlink" title="Ai的判断"></a>Ai的判断</h2><h3 id="模糊逻辑（Fuzzy-Logic）"><a href="#模糊逻辑（Fuzzy-Logic）" class="headerlink" title="模糊逻辑（Fuzzy Logic）"></a>模糊逻辑（Fuzzy Logic）</h3><h4 id="什么是逻辑模糊"><a href="#什么是逻辑模糊" class="headerlink" title="什么是逻辑模糊"></a>什么是逻辑模糊</h4><p>在现实生活中，会有许多的事物是无法用一个确定的值来描述的，比如成绩的是否优秀，不能简单的定下一个值来说：高于90分的才是优秀，那89分的就很不服，因为89和90的差距并不大。模糊逻辑便可以帮助我们解决这个问题，让我们在计算机中实现类似于人的思考，</p>
 <p>在游戏中以各种方式使用模糊逻辑。例如，可以使用模糊逻辑来控制机器人或其他npc。也可以使用它来评估玩家构成的威胁。<br>我们可以通过模糊逻辑来对敌人的防御，血量，伤害等数据来给出一个数值，用于行为树或者是FSM中用于控制AI的行为。</p>
@@ -265,8 +327,11 @@ degreeFlee = MIN (MIN ((1.0 - degreeOutOfRange),(1.0 - degreeUninjured)),(1.0 - 
 <p>P(Tr|L) &#x3D; (0.62 x 0.5) &#x2F; 0.54 &#x3D; 0.57</p>
 <p>综上所述，我们可以可以发现面对一个箱子，NPC认为是个陷阱的概率变成了了78%，而认为有宝藏的概率变成了54%，</p>
 <p>贝叶斯网络的节点越多，运算的数量就会越多，因此再没必要的情况下，不要整太多的节点。</p>
-<h2 id="多人Ai"><a href="#多人Ai" class="headerlink" title="多人Ai"></a>多人Ai</h2><h2 id="感知"><a href="#感知" class="headerlink" title="感知"></a>感知</h2><h2 id="深度学习"><a href="#深度学习" class="headerlink" title="深度学习"></a>深度学习</h2><p>待补充</p>
-<h2 id="遗传算法"><a href="#遗传算法" class="headerlink" title="遗传算法"></a>遗传算法</h2><h2 id="其他网站"><a href="#其他网站" class="headerlink" title="其他网站"></a>其他网站</h2><p><a target="_blank" rel="noopener" href="http://www.aisharing.com/sitemap">AI分享站</a><br><a target="_blank" rel="noopener" href="https://www.zhihu.com/collection/857427175">知乎收藏的一些文章</a></p>
+<h2 id="多人Ai"><a href="#多人Ai" class="headerlink" title="多人Ai"></a>多人Ai</h2><p>待补充</p>
+<h2 id="感知"><a href="#感知" class="headerlink" title="感知"></a>感知</h2><p>待补充</p>
+<h2 id="深度学习"><a href="#深度学习" class="headerlink" title="深度学习"></a>深度学习</h2><p>待补充</p>
+<h2 id="遗传算法"><a href="#遗传算法" class="headerlink" title="遗传算法"></a>遗传算法</h2><p>待补充</p>
+<h2 id="其他网站"><a href="#其他网站" class="headerlink" title="其他网站"></a>其他网站</h2><p><a target="_blank" rel="noopener" href="http://www.aisharing.com/sitemap">AI分享站</a><br><a target="_blank" rel="noopener" href="https://www.zhihu.com/collection/857427175">知乎收藏的一些文章</a></p>
 
         <!-- 分类文章 -->
         
